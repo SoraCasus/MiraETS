@@ -1,7 +1,3 @@
-//
-// Copyright (c) 2025 Mirror Domain Studios. All rights reserved.
-//
-
 #pragma once
 
 #include <string>

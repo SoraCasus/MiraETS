@@ -1,7 +1,3 @@
-//
-// Copyright (c) 2025 Mirror Domain Studios. All rights reserved.
-//
-
 /**
  * @file SystemScheduler.hpp
  * @brief Optimized scheduler for executing systems with batch-based dependency graph execution.

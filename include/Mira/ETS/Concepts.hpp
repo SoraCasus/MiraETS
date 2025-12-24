@@ -1,7 +1,3 @@
-//
-// Copyright (c) 2025 Mirror Domain Studios. All rights reserved.
-//
-
 /**
  * @file Concepts.hpp
  * @brief Defines core concepts used for component type validation in the ETS library.

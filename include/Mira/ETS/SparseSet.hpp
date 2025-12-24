@@ -1,7 +1,3 @@
-//
-// Copyright (c) 2025 Mirror Domain Studios. All rights reserved.
-//
-
 /**
  * @file SparseSet.hpp
  * @brief Efficient sparse set implementation for entity and component storage.

@@ -1,7 +1,3 @@
-//
-// Copyright (c) 2025 Mirror Domain Studios. All rights reserved.
-//
-
 /**
  * @file Observer.hpp
  * @brief Observer patterns and event definitions for component changes.

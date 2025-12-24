@@ -1,7 +1,3 @@
-//
-// Copyright (c) 2025 Mirror Domain Studios. All rights reserved.
-//
-
 /**
  * @file Serialization.hpp
  * @brief Serialization and deserialization utilities for the ETS world.

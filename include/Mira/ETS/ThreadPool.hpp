@@ -1,7 +1,3 @@
-//
-// Copyright (c) 2025 Mirror Domain Studios. All rights reserved.
-//
-
 /**
  * @file ThreadPool.hpp
  * @brief High-performance thread pool with work-stealing and lock-free task queues.

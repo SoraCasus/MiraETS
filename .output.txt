@@ -1,0 +1,3548 @@
+
+Mira
+ETS
+include\Mira\ETS\ComponentMask.hpp:1:#ifndef MIRA_ETS_COMPONENT_MASK_HPP
+include\Mira\ETS\ComponentMask.hpp:2:#define MIRA_ETS_COMPONENT_MASK_HPP
+include\Mira\ETS\ComponentMask.hpp:3:
+include\Mira\ETS\ComponentMask.hpp:4:#include <cstdint>
+include\Mira\ETS\ComponentMask.hpp:5:#include <array>
+include\Mira\ETS\ComponentMask.hpp:6:#include <cstring>
+include\Mira\ETS\ComponentMask.hpp:7:
+include\Mira\ETS\ComponentMask.hpp:8:#if defined(_MSC_VER)
+include\Mira\ETS\ComponentMask.hpp:9:#include <intrin.h>
+include\Mira\ETS\ComponentMask.hpp:10:#endif
+include\Mira\ETS\ComponentMask.hpp:11:
+include\Mira\ETS\ComponentMask.hpp:12:namespace Mira::ETS {
+include\Mira\ETS\ComponentMask.hpp:13:    /**
+include\Mira\ETS\ComponentMask.hpp:14:     * @brief A fixed-size bitset
+optimized for ECS component masks.
+include\Mira\ETS\ComponentMask.hpp:15:     * Supports up to 256 component
+types.
+include\Mira\ETS\ComponentMask.hpp:16:     */
+include\Mira\ETS\ComponentMask.hpp:17:    class ComponentMask {
+include\Mira\ETS\ComponentMask.hpp:18:    public:
+include\Mira\ETS\ComponentMask.hpp:19:        /**
+include\Mira\ETS\ComponentMask.hpp:20:         * @brief Construct a new
+Component Mask.
+include\Mira\ETS\ComponentMask.hpp:21:         * @param val Initial value for
+the first 64 bits.
+include\Mira\ETS\ComponentMask.hpp:22:         */
+include\Mira\ETS\ComponentMask.hpp:23:        explicit
+include\Mira\ETS\ComponentMask.hpp:24:        ComponentMask( unsigned long
+long val = 0 ) noexcept {
+include\Mira\ETS\ComponentMask.hpp:25:            m_Words.fill( 0 );
+include\Mira\ETS\ComponentMask.hpp:26:            m_Words[ 0 ] = val;
+include\Mira\ETS\ComponentMask.hpp:27:        }
+include\Mira\ETS\ComponentMask.hpp:28:
+include\Mira\ETS\ComponentMask.hpp:29:        /**
+include\Mira\ETS\ComponentMask.hpp:30:         * @brief Set a bit.
+include\Mira\ETS\ComponentMask.hpp:31:         * @param bit The bit index
+(0-255).
+include\Mira\ETS\ComponentMask.hpp:32:         */
+include\Mira\ETS\ComponentMask.hpp:33:        void
+include\Mira\ETS\ComponentMask.hpp:34:        Set( size_t bit ) noexcept {
+include\Mira\ETS\ComponentMask.hpp:35:            if ( bit < 256 ) {
+include\Mira\ETS\ComponentMask.hpp:36:                m_Words[ bit / 64 ] |= (
+1ULL << ( bit % 64 ) );
+include\Mira\ETS\ComponentMask.hpp:37:            }
+include\Mira\ETS\ComponentMask.hpp:38:        }
+include\Mira\ETS\ComponentMask.hpp:39:
+include\Mira\ETS\ComponentMask.hpp:40:        /**
+include\Mira\ETS\ComponentMask.hpp:41:         * @brief Reset a bit.
+include\Mira\ETS\ComponentMask.hpp:42:         * @param bit The bit index
+(0-255).
+include\Mira\ETS\ComponentMask.hpp:43:         */
+include\Mira\ETS\ComponentMask.hpp:44:        void
+include\Mira\ETS\ComponentMask.hpp:45:        Reset( size_t bit ) noexcept {
+include\Mira\ETS\ComponentMask.hpp:46:            if ( bit < 256 ) {
+include\Mira\ETS\ComponentMask.hpp:47:                m_Words[ bit / 64 ] &=
+~( 1ULL << ( bit % 64 ) );
+include\Mira\ETS\ComponentMask.hpp:48:            }
+include\Mira\ETS\ComponentMask.hpp:49:        }
+include\Mira\ETS\ComponentMask.hpp:50:
+include\Mira\ETS\ComponentMask.hpp:51:        /**
+include\Mira\ETS\ComponentMask.hpp:52:         * @brief Reset all bits.
+include\Mira\ETS\ComponentMask.hpp:53:         */
+include\Mira\ETS\ComponentMask.hpp:54:        void
+include\Mira\ETS\ComponentMask.hpp:55:        Reset() noexcept {
+include\Mira\ETS\ComponentMask.hpp:56:            m_Words.fill( 0 );
+include\Mira\ETS\ComponentMask.hpp:57:        }
+include\Mira\ETS\ComponentMask.hpp:58:
+include\Mira\ETS\ComponentMask.hpp:59:        /**
+include\Mira\ETS\ComponentMask.hpp:60:         * @brief Test if a bit is set.
+include\Mira\ETS\ComponentMask.hpp:61:         * @param bit The bit index
+(0-255).
+include\Mira\ETS\ComponentMask.hpp:62:         * @return true If the bit is
+set.
+include\Mira\ETS\ComponentMask.hpp:63:         */
+include\Mira\ETS\ComponentMask.hpp:64:        bool
+include\Mira\ETS\ComponentMask.hpp:65:        Test( size_t bit ) const
+noexcept {
+include\Mira\ETS\ComponentMask.hpp:66:            if ( bit >= 256 ) return
+false;
+include\Mira\ETS\ComponentMask.hpp:67:            return ( m_Words[ bit / 64 ]
+& ( 1ULL << ( bit % 64 ) ) ) != 0;
+include\Mira\ETS\ComponentMask.hpp:68:        }
+include\Mira\ETS\ComponentMask.hpp:69:
+include\Mira\ETS\ComponentMask.hpp:70:        /**
+include\Mira\ETS\ComponentMask.hpp:71:         * @brief Check if any bit is
+set.
+include\Mira\ETS\ComponentMask.hpp:72:         * @return true If any bit is
+set.
+include\Mira\ETS\ComponentMask.hpp:73:         */
+include\Mira\ETS\ComponentMask.hpp:74:        bool
+include\Mira\ETS\ComponentMask.hpp:75:        Any() const noexcept {
+include\Mira\ETS\ComponentMask.hpp:76:            for ( uint64_t w : m_Words )
+if ( w ) return true;
+include\Mira\ETS\ComponentMask.hpp:77:            return false;
+include\Mira\ETS\ComponentMask.hpp:78:        }
+include\Mira\ETS\ComponentMask.hpp:79:
+include\Mira\ETS\ComponentMask.hpp:80:        /**
+include\Mira\ETS\ComponentMask.hpp:81:         * @brief Check if no bits are
+set.
+include\Mira\ETS\ComponentMask.hpp:82:         * @return true If no bits are
+set.
+include\Mira\ETS\ComponentMask.hpp:83:         */
+include\Mira\ETS\ComponentMask.hpp:84:        bool
+include\Mira\ETS\ComponentMask.hpp:85:        None() const noexcept {
+include\Mira\ETS\ComponentMask.hpp:86:            return !Any();
+include\Mira\ETS\ComponentMask.hpp:87:        }
+include\Mira\ETS\ComponentMask.hpp:88:
+include\Mira\ETS\ComponentMask.hpp:89:        /**
+include\Mira\ETS\ComponentMask.hpp:90:         * @brief Get the size of the
+mask.
+include\Mira\ETS\ComponentMask.hpp:91:         * @return size_t The number of
+bits (256).
+include\Mira\ETS\ComponentMask.hpp:92:         */
+include\Mira\ETS\ComponentMask.hpp:93:        size_t
+include\Mira\ETS\ComponentMask.hpp:94:        Size() const noexcept {
+include\Mira\ETS\ComponentMask.hpp:95:            return 256;
+include\Mira\ETS\ComponentMask.hpp:96:        }
+include\Mira\ETS\ComponentMask.hpp:97:
+include\Mira\ETS\ComponentMask.hpp:98:        bool
+include\Mira\ETS\ComponentMask.hpp:99:        operator==( const ComponentMask&
+other ) const noexcept {
+include\Mira\ETS\ComponentMask.hpp:100:            return m_Words ==
+other.m_Words;
+include\Mira\ETS\ComponentMask.hpp:101:        }
+include\Mira\ETS\ComponentMask.hpp:102:
+include\Mira\ETS\ComponentMask.hpp:103:        bool
+include\Mira\ETS\ComponentMask.hpp:104:        operator!=( const
+ComponentMask& other ) const noexcept {
+include\Mira\ETS\ComponentMask.hpp:105:            return m_Words !=
+other.m_Words;
+include\Mira\ETS\ComponentMask.hpp:106:        }
+include\Mira\ETS\ComponentMask.hpp:107:
+include\Mira\ETS\ComponentMask.hpp:108:        ComponentMask
+include\Mira\ETS\ComponentMask.hpp:109:        operator&( const ComponentMask&
+other ) const noexcept {
+include\Mira\ETS\ComponentMask.hpp:110:            ComponentMask result;
+include\Mira\ETS\ComponentMask.hpp:111:            for ( size_t i = 0; i < 4;
+++i ) {
+include\Mira\ETS\ComponentMask.hpp:112:                result.m_Words[ i ] =
+m_Words[ i ] & other.m_Words[ i ];
+include\Mira\ETS\ComponentMask.hpp:113:            }
+include\Mira\ETS\ComponentMask.hpp:114:            return result;
+include\Mira\ETS\ComponentMask.hpp:115:        }
+include\Mira\ETS\ComponentMask.hpp:116:
+include\Mira\ETS\ComponentMask.hpp:117:        ComponentMask
+include\Mira\ETS\ComponentMask.hpp:118:        operator|( const ComponentMask&
+other ) const noexcept {
+include\Mira\ETS\ComponentMask.hpp:119:            ComponentMask result;
+include\Mira\ETS\ComponentMask.hpp:120:            for ( size_t i = 0; i < 4;
+++i ) {
+include\Mira\ETS\ComponentMask.hpp:121:                result.m_Words[ i ] =
+m_Words[ i ] | other.m_Words[ i ];
+include\Mira\ETS\ComponentMask.hpp:122:            }
+include\Mira\ETS\ComponentMask.hpp:123:            return result;
+include\Mira\ETS\ComponentMask.hpp:124:        }
+include\Mira\ETS\ComponentMask.hpp:125:
+include\Mira\ETS\ComponentMask.hpp:126:        /**
+include\Mira\ETS\ComponentMask.hpp:127:         * @brief Check if this mask
+contains all bits set in another mask.
+include\Mira\ETS\ComponentMask.hpp:128:         * Optimized equivalent of
+(this & other) == other.
+include\Mira\ETS\ComponentMask.hpp:129:         * @param other The other mask.
+include\Mira\ETS\ComponentMask.hpp:130:         * @return true If this mask
+contains all bits of the other.
+include\Mira\ETS\ComponentMask.hpp:131:         */
+include\Mira\ETS\ComponentMask.hpp:132:        bool
+include\Mira\ETS\ComponentMask.hpp:133:        Contains( const ComponentMask&
+other ) const noexcept {
+include\Mira\ETS\ComponentMask.hpp:134:            for ( size_t i = 0; i < 4;
+++i ) {
+include\Mira\ETS\ComponentMask.hpp:135:                if ( ( m_Words[ i ] &
+other.m_Words[ i ] ) != other.m_Words[ i ] ) return false;
+include\Mira\ETS\ComponentMask.hpp:136:            }
+include\Mira\ETS\ComponentMask.hpp:137:            return true;
+include\Mira\ETS\ComponentMask.hpp:138:        }
+include\Mira\ETS\ComponentMask.hpp:139:
+include\Mira\ETS\ComponentMask.hpp:140:        /**
+include\Mira\ETS\ComponentMask.hpp:141:         * @brief Iterate over all set
+bits and call a function for each.
+include\Mira\ETS\ComponentMask.hpp:142:         * Uses bitmask intrinsics for
+high performance.
+include\Mira\ETS\ComponentMask.hpp:143:         * @tparam F Function type
+(size_t -> void)
+include\Mira\ETS\ComponentMask.hpp:144:         * @param f Function to call.
+include\Mira\ETS\ComponentMask.hpp:145:         */
+include\Mira\ETS\ComponentMask.hpp:146:        template< typename F >
+include\Mira\ETS\ComponentMask.hpp:147:        void
+include\Mira\ETS\ComponentMask.hpp:148:        ForEachSetBit( F&& f ) const
+noexcept {
+include\Mira\ETS\ComponentMask.hpp:149:            for ( size_t i = 0; i < 4;
+++i ) {
+include\Mira\ETS\ComponentMask.hpp:150:                uint64_t w = m_Words[ i
+];
+include\Mira\ETS\ComponentMask.hpp:151:                while ( w ) {
+include\Mira\ETS\ComponentMask.hpp:152:                    uint32_t bit;
+include\Mira\ETS\ComponentMask.hpp:153:#if defined(_MSC_VER)
+include\Mira\ETS\ComponentMask.hpp:154:                    _BitScanForward64(
+( unsigned long* ) &bit, w );
+include\Mira\ETS\ComponentMask.hpp:155:#else
+include\Mira\ETS\ComponentMask.hpp:156:                    bit =
+__builtin_ctzll( w );
+include\Mira\ETS\ComponentMask.hpp:157:#endif
+include\Mira\ETS\ComponentMask.hpp:158:                    f( i * 64 + bit );
+include\Mira\ETS\ComponentMask.hpp:159:                    w &= ~( 1ULL << bit
+);
+include\Mira\ETS\ComponentMask.hpp:160:                }
+include\Mira\ETS\ComponentMask.hpp:161:            }
+include\Mira\ETS\ComponentMask.hpp:162:        }
+include\Mira\ETS\ComponentMask.hpp:163:
+include\Mira\ETS\ComponentMask.hpp:164:        /**
+include\Mira\ETS\ComponentMask.hpp:165:         * @brief Get a specific 64-bit
+word of the mask.
+include\Mira\ETS\ComponentMask.hpp:166:         * @param index Word index
+(0-3).
+include\Mira\ETS\ComponentMask.hpp:167:         * @return uint64_t The word
+value.
+include\Mira\ETS\ComponentMask.hpp:168:         */
+include\Mira\ETS\ComponentMask.hpp:169:        uint64_t
+include\Mira\ETS\ComponentMask.hpp:170:        GetWord( size_t index ) const
+noexcept {
+include\Mira\ETS\ComponentMask.hpp:171:            return m_Words[ index ];
+include\Mira\ETS\ComponentMask.hpp:172:        }
+include\Mira\ETS\ComponentMask.hpp:173:
+include\Mira\ETS\ComponentMask.hpp:174:    private:
+include\Mira\ETS\ComponentMask.hpp:175:        std::array < uint64_t, 4 >
+m_Words;
+include\Mira\ETS\ComponentMask.hpp:176:    };
+include\Mira\ETS\ComponentMask.hpp:177:} // namespace Mira::ETS
+include\Mira\ETS\ComponentMask.hpp:178:
+include\Mira\ETS\ComponentMask.hpp:179:#endif // MIRA_ETS_COMPONENT_MASK_HPP
+include\Mira\ETS\Concepts.hpp:1://
+include\Mira\ETS\Concepts.hpp:2:// Copyright (c) 2025 Mirror Domain Studios.
+All rights reserved.
+include\Mira\ETS\Concepts.hpp:3://
+include\Mira\ETS\Concepts.hpp:4:
+include\Mira\ETS\Concepts.hpp:5:/**
+include\Mira\ETS\Concepts.hpp:7: * @brief Defines core concepts used for
+component type validation in the ETS library.
+include\Mira\ETS\Concepts.hpp:8: */
+include\Mira\ETS\Concepts.hpp:9:
+include\Mira\ETS\Concepts.hpp:10:#pragma once
+include\Mira\ETS\Concepts.hpp:11:
+include\Mira\ETS\Concepts.hpp:12:#include <concepts>
+include\Mira\ETS\Concepts.hpp:13:#include <format>
+include\Mira\ETS\Concepts.hpp:14:#include <utility>
+include\Mira\ETS\Concepts.hpp:15:#include <type_traits>
+include\Mira\ETS\Concepts.hpp:16:
+include\Mira\ETS\Concepts.hpp:17:
+include\Mira\ETS\Concepts.hpp:18:/**
+include\Mira\ETS\Concepts.hpp:19: * @brief Macro to define a trait member with
+[[no_unique_address]] optimization.
+include\Mira\ETS\Concepts.hpp:20: * @param TraitType The type of the trait to
+include.
+include\Mira\ETS\Concepts.hpp:21: * @param MemberName The name of the member
+variable.
+include\Mira\ETS\Concepts.hpp:22: */
+include\Mira\ETS\Concepts.hpp:23:#define MIRA_TRAIT(TraitType, MemberName)
+[[no_unique_address]] TraitType MemberName
+include\Mira\ETS\Concepts.hpp:24:
+include\Mira\ETS\Concepts.hpp:25:
+include\Mira\ETS\Concepts.hpp:26:namespace Mira::ETS {
+include\Mira\ETS\Concepts.hpp:27:    /**
+include\Mira\ETS\Concepts.hpp:28:     * @brief Concept for types that have X
+and Y float members.
+include\Mira\ETS\Concepts.hpp:29:     */
+include\Mira\ETS\Concepts.hpp:30:    template< typename T >
+include\Mira\ETS\Concepts.hpp:31:    concept HasPosition = requires( T t ) {
+include\Mira\ETS\Concepts.hpp:32:        { t.X } -> std::convertible_to <
+float >;
+include\Mira\ETS\Concepts.hpp:33:        { t.Y } -> std::convertible_to <
+float >;
+include\Mira\ETS\Concepts.hpp:34:    };
+include\Mira\ETS\Concepts.hpp:35:
+include\Mira\ETS\Concepts.hpp:36:    /**
+include\Mira\ETS\Concepts.hpp:37:     * @brief Concept for types that have Vx
+and Vy float members.
+include\Mira\ETS\Concepts.hpp:38:     */
+include\Mira\ETS\Concepts.hpp:39:    template< typename T >
+include\Mira\ETS\Concepts.hpp:40:    concept HasVelocity = requires( T t ) {
+include\Mira\ETS\Concepts.hpp:41:        { t.Vx } -> std::convertible_to <
+float >;
+include\Mira\ETS\Concepts.hpp:42:        { t.Vy } -> std::convertible_to <
+float >;
+include\Mira\ETS\Concepts.hpp:43:    };
+include\Mira\ETS\Concepts.hpp:44:
+include\Mira\ETS\Concepts.hpp:45:    /**
+include\Mira\ETS\Concepts.hpp:46:     * @brief Concept for types that have an
+Id member convertible to size_t.
+include\Mira\ETS\Concepts.hpp:47:     */
+include\Mira\ETS\Concepts.hpp:48:    template< typename T >
+include\Mira\ETS\Concepts.hpp:49:    concept HasIdentity = requires( T t ) {
+include\Mira\ETS\Concepts.hpp:50:        { t.Id } -> std::convertible_to <
+size_t >;
+include\Mira\ETS\Concepts.hpp:51:    };
+include\Mira\ETS\Concepts.hpp:52:} // namespace Mira::ETS
+include\Mira\ETS\Errors.hpp:1:#pragma once
+include\Mira\ETS\Errors.hpp:2:
+include\Mira\ETS\Errors.hpp:3:#include <string>
+include\Mira\ETS\Errors.hpp:4:#include <string_view>
+include\Mira\ETS\Errors.hpp:5:#include <Mira/ETS/Logger.hpp>
+include\Mira\ETS\Errors.hpp:6:
+include\Mira\ETS\Errors.hpp:7:namespace Mira::ETS {
+include\Mira\ETS\Errors.hpp:8:    enum class ErrorCode {
+include\Mira\ETS\Errors.hpp:9:        None = 0,
+include\Mira\ETS\Errors.hpp:10:        InvalidJson,
+include\Mira\ETS\Errors.hpp:11:        MissingField,
+include\Mira\ETS\Errors.hpp:12:        TypeMismatch,
+include\Mira\ETS\Errors.hpp:13:        ComponentNotRegistered,
+include\Mira\ETS\Errors.hpp:14:        UnknownPrefab,
+include\Mira\ETS\Errors.hpp:15:        InternalError
+include\Mira\ETS\Errors.hpp:16:    };
+include\Mira\ETS\Errors.hpp:17:
+include\Mira\ETS\Errors.hpp:18:    struct Result {
+include\Mira\ETS\Errors.hpp:19:        ErrorCode code = ErrorCode::None;
+include\Mira\ETS\Errors.hpp:20:        std::string message;
+include\Mira\ETS\Errors.hpp:21:
+include\Mira\ETS\Errors.hpp:22:        bool
+include\Mira\ETS\Errors.hpp:23:        Success() const {
+include\Mira\ETS\Errors.hpp:24:            return code == ErrorCode::None;
+include\Mira\ETS\Errors.hpp:25:        }
+include\Mira\ETS\Errors.hpp:26:
+include\Mira\ETS\Errors.hpp:27:        operator bool() const {
+include\Mira\ETS\Errors.hpp:28:            return Success();
+include\Mira\ETS\Errors.hpp:29:        }
+include\Mira\ETS\Errors.hpp:30:
+include\Mira\ETS\Errors.hpp:31:        static Result
+include\Mira\ETS\Errors.hpp:32:        Ok() {
+include\Mira\ETS\Errors.hpp:33:            return { ErrorCode::None, "" };
+include\Mira\ETS\Errors.hpp:34:        }
+include\Mira\ETS\Errors.hpp:35:
+include\Mira\ETS\Errors.hpp:36:        static Result
+include\Mira\ETS\Errors.hpp:37:        Error( ErrorCode code, std::string
+message ) {
+include\Mira\ETS\Errors.hpp:38:            return { code, std::move( message )
+};
+include\Mira\ETS\Errors.hpp:39:        }
+include\Mira\ETS\Errors.hpp:40:    };
+include\Mira\ETS\Errors.hpp:41:
+include\Mira\ETS\Errors.hpp:42:    /**
+include\Mira\ETS\Errors.hpp:43:     * @brief Simple error reporter that can be
+customized.
+include\Mira\ETS\Errors.hpp:44:     */
+include\Mira\ETS\Errors.hpp:45:    class ErrorReporter {
+include\Mira\ETS\Errors.hpp:46:    public:
+include\Mira\ETS\Errors.hpp:47:        virtual ~ErrorReporter() = default;
+include\Mira\ETS\Errors.hpp:48:
+include\Mira\ETS\Errors.hpp:49:        virtual void
+include\Mira\ETS\Errors.hpp:50:        Report( const Result& result ) {
+include\Mira\ETS\Errors.hpp:51:            if ( !result.Success() ) {
+include\Mira\ETS\Errors.hpp:52:                Logger::Error( std::to_string(
+( int ) result.code ) + ": " + result.message );
+include\Mira\ETS\Errors.hpp:53:            }
+include\Mira\ETS\Errors.hpp:54:        }
+include\Mira\ETS\Errors.hpp:55:    };
+include\Mira\ETS\Errors.hpp:56:
+include\Mira\ETS\Errors.hpp:57:    inline ErrorReporter DefaultErrorReporter;
+include\Mira\ETS\Errors.hpp:58:} // namespace Mira::ETS
+include\Mira\ETS\Logger.hpp:1://
+include\Mira\ETS\Logger.hpp:2:// Copyright (c) 2025 Mirror Domain Studios. All
+rights reserved.
+include\Mira\ETS\Logger.hpp:3://
+include\Mira\ETS\Logger.hpp:4:
+include\Mira\ETS\Logger.hpp:5:#pragma once
+include\Mira\ETS\Logger.hpp:6:
+include\Mira\ETS\Logger.hpp:7:#include <string_view>
+include\Mira\ETS\Logger.hpp:8:#include <functional>
+include\Mira\ETS\Logger.hpp:9:
+include\Mira\ETS\Logger.hpp:10:namespace Mira::ETS {
+include\Mira\ETS\Logger.hpp:11:    /**
+include\Mira\ETS\Logger.hpp:12:     * @brief Log levels for Mira ETS.
+include\Mira\ETS\Logger.hpp:13:     */
+include\Mira\ETS\Logger.hpp:14:    enum class LogLevel {
+include\Mira\ETS\Logger.hpp:15:        Info,
+include\Mira\ETS\Logger.hpp:16:        Warning,
+include\Mira\ETS\Logger.hpp:17:        Error
+include\Mira\ETS\Logger.hpp:18:    };
+include\Mira\ETS\Logger.hpp:19:
+include\Mira\ETS\Logger.hpp:20:    /**
+include\Mira\ETS\Logger.hpp:21:     * @brief Callback type for logging.
+include\Mira\ETS\Logger.hpp:22:     * @param level The log level.
+include\Mira\ETS\Logger.hpp:23:     * @param message The log message.
+include\Mira\ETS\Logger.hpp:24:     */
+include\Mira\ETS\Logger.hpp:25:    using LogCallback = std::function < void(
+LogLevel level, std::string_view message ) >;
+include\Mira\ETS\Logger.hpp:26:
+include\Mira\ETS\Logger.hpp:27:    /**
+include\Mira\ETS\Logger.hpp:28:     * @brief Static logger class for Mira ETS.
+include\Mira\ETS\Logger.hpp:29:     */
+include\Mira\ETS\Logger.hpp:30:    class Logger {
+include\Mira\ETS\Logger.hpp:31:    public:
+include\Mira\ETS\Logger.hpp:32:        /**
+include\Mira\ETS\Logger.hpp:33:         * @brief Set the logging callback.
+include\Mira\ETS\Logger.hpp:34:         * @param callback The new callback. If
+null, logging is disabled.
+include\Mira\ETS\Logger.hpp:35:         */
+include\Mira\ETS\Logger.hpp:36:        static void
+include\Mira\ETS\Logger.hpp:37:        SetCallback( LogCallback callback );
+include\Mira\ETS\Logger.hpp:38:
+include\Mira\ETS\Logger.hpp:39:        /**
+include\Mira\ETS\Logger.hpp:40:         * @brief Restore the default logging
+callback (std::cout/std::cerr).
+include\Mira\ETS\Logger.hpp:41:         */
+include\Mira\ETS\Logger.hpp:42:        static void
+include\Mira\ETS\Logger.hpp:43:        RestoreDefaultCallback();
+include\Mira\ETS\Logger.hpp:44:
+include\Mira\ETS\Logger.hpp:45:        /**
+include\Mira\ETS\Logger.hpp:46:         * @brief Log a message.
+include\Mira\ETS\Logger.hpp:47:         * @param level The log level.
+include\Mira\ETS\Logger.hpp:48:         * @param message The log message.
+include\Mira\ETS\Logger.hpp:49:         */
+include\Mira\ETS\Logger.hpp:50:        static void
+include\Mira\ETS\Logger.hpp:51:        Log( LogLevel level, std::string_view
+message );
+include\Mira\ETS\Logger.hpp:52:
+include\Mira\ETS\Logger.hpp:53:        /**
+include\Mira\ETS\Logger.hpp:54:         * @brief Log an info message.
+include\Mira\ETS\Logger.hpp:55:         * @param message The log message.
+include\Mira\ETS\Logger.hpp:56:         */
+include\Mira\ETS\Logger.hpp:57:        static void
+include\Mira\ETS\Logger.hpp:58:        Info( std::string_view message ) {
+include\Mira\ETS\Logger.hpp:59:            Log( LogLevel::Info, message );
+include\Mira\ETS\Logger.hpp:60:        }
+include\Mira\ETS\Logger.hpp:61:
+include\Mira\ETS\Logger.hpp:62:        /**
+include\Mira\ETS\Logger.hpp:63:         * @brief Log a warning message.
+include\Mira\ETS\Logger.hpp:64:         * @param message The log message.
+include\Mira\ETS\Logger.hpp:65:         */
+include\Mira\ETS\Logger.hpp:66:        static void
+include\Mira\ETS\Logger.hpp:67:        Warning( std::string_view message ) {
+include\Mira\ETS\Logger.hpp:68:            Log( LogLevel::Warning, message );
+include\Mira\ETS\Logger.hpp:69:        }
+include\Mira\ETS\Logger.hpp:70:
+include\Mira\ETS\Logger.hpp:71:        /**
+include\Mira\ETS\Logger.hpp:72:         * @brief Log an error message.
+include\Mira\ETS\Logger.hpp:73:         * @param message The log message.
+include\Mira\ETS\Logger.hpp:74:         */
+include\Mira\ETS\Logger.hpp:75:        static void
+include\Mira\ETS\Logger.hpp:76:        Error( std::string_view message ) {
+include\Mira\ETS\Logger.hpp:77:            Log( LogLevel::Error, message );
+include\Mira\ETS\Logger.hpp:78:        }
+include\Mira\ETS\Logger.hpp:79:
+include\Mira\ETS\Logger.hpp:80:    private:
+include\Mira\ETS\Logger.hpp:81:        static void
+include\Mira\ETS\Logger.hpp:82:        DefaultCallback( LogLevel level,
+std::string_view message );
+include\Mira\ETS\Logger.hpp:83:
+include\Mira\ETS\Logger.hpp:84:        static LogCallback s_Callback;
+include\Mira\ETS\Logger.hpp:85:    };
+include\Mira\ETS\Logger.hpp:86:} // namespace Mira::ETS
+include\Mira\ETS\Movable.hpp:1://
+include\Mira\ETS\Movable.hpp:2:// Copyright (c) 2025 Mirror Domain Studios.
+All rights reserved.
+include\Mira\ETS\Movable.hpp:3://
+include\Mira\ETS\Movable.hpp:4:
+include\Mira\ETS\Movable.hpp:5:/**
+include\Mira\ETS\Movable.hpp:7: * @brief Type-erased wrapper for movable
+components.
+include\Mira\ETS\Movable.hpp:8: */
+include\Mira\ETS\Movable.hpp:9:
+include\Mira\ETS\Movable.hpp:10:#pragma once
+include\Mira\ETS\Movable.hpp:11:
+include\Mira\ETS\Movable.hpp:12:#include <memory>
+include\Mira\ETS\Movable.hpp:13:#include <new>
+include\Mira\ETS\Movable.hpp:14:#include <concepts>
+include\Mira\ETS\Movable.hpp:15:#include <functional>
+include\Mira\ETS\Movable.hpp:16:#include <utility>
+include\Mira\ETS\Movable.hpp:17:#include <cstddef>
+include\Mira\ETS\Movable.hpp:18:
+include\Mira\ETS\Movable.hpp:19:namespace Mira::ETS {
+include\Mira\ETS\Movable.hpp:20:    /**
+include\Mira\ETS\Movable.hpp:21:     * @brief Concept for types that can be
+updated with a time step.
+include\Mira\ETS\Movable.hpp:22:     */
+include\Mira\ETS\Movable.hpp:23:    template< typename T >
+include\Mira\ETS\Movable.hpp:24:    concept MovableInterface = requires( T t,
+float dt ) {
+include\Mira\ETS\Movable.hpp:25:        { t.UpdatePosition( dt ) } ->
+std::same_as < void >;
+include\Mira\ETS\Movable.hpp:26:    };
+include\Mira\ETS\Movable.hpp:27:
+include\Mira\ETS\Movable.hpp:28:    /**
+include\Mira\ETS\Movable.hpp:29:     * @brief A type-erased container for any
+type satisfying MovableInterface.
+include\Mira\ETS\Movable.hpp:30:     */
+include\Mira\ETS\Movable.hpp:31:    class AnyMovable {
+include\Mira\ETS\Movable.hpp:32:    public:
+include\Mira\ETS\Movable.hpp:33:        static constexpr size_t k_BufferSize =
+64;
+include\Mira\ETS\Movable.hpp:34:
+include\Mira\ETS\Movable.hpp:35:    private:
+include\Mira\ETS\Movable.hpp:36:        struct VTable {
+include\Mira\ETS\Movable.hpp:37:            void
+include\Mira\ETS\Movable.hpp:38:            ( * UpdateFn )( void*, float );
+include\Mira\ETS\Movable.hpp:39:
+include\Mira\ETS\Movable.hpp:40:            void
+include\Mira\ETS\Movable.hpp:41:            ( * DestroyFn )( void* );
+include\Mira\ETS\Movable.hpp:42:
+include\Mira\ETS\Movable.hpp:43:            void
+include\Mira\ETS\Movable.hpp:44:            ( * CloneFn )( const void*, void**
+);
+include\Mira\ETS\Movable.hpp:45:
+include\Mira\ETS\Movable.hpp:46:            void
+include\Mira\ETS\Movable.hpp:47:            ( * MoveFn )( void*, void** );
+include\Mira\ETS\Movable.hpp:48:
+include\Mira\ETS\Movable.hpp:49:            size_t Size;
+include\Mira\ETS\Movable.hpp:50:        };
+include\Mira\ETS\Movable.hpp:51:
+include\Mira\ETS\Movable.hpp:52:        template< typename T >
+include\Mira\ETS\Movable.hpp:53:        static constexpr VTable
+k_VTableInstance{
+include\Mira\ETS\Movable.hpp:54:            .UpdateFn = []( void* ptr, float
+dt ) {
+include\Mira\ETS\Movable.hpp:55:                static_cast < T* >( ptr
+)->UpdatePosition( dt );
+include\Mira\ETS\Movable.hpp:56:            },
+include\Mira\ETS\Movable.hpp:57:            .DestroyFn = []( void* ptr ) {
+include\Mira\ETS\Movable.hpp:58:                static_cast < T* >( ptr
+)->~T();
+include\Mira\ETS\Movable.hpp:59:            },
+include\Mira\ETS\Movable.hpp:60:            .CloneFn = []( const void* src,
+void** dst ) {
+include\Mira\ETS\Movable.hpp:61:                if constexpr ( sizeof( T ) <=
+k_BufferSize ) {
+include\Mira\ETS\Movable.hpp:62:                    new( *dst ) T(
+*static_cast < const T* >( src ) );
+include\Mira\ETS\Movable.hpp:63:                } else {
+include\Mira\ETS\Movable.hpp:64:                    *dst = ::operator new(
+sizeof( T ) );
+include\Mira\ETS\Movable.hpp:65:                    new( *dst ) T(
+*static_cast < const T* >( src ) );
+include\Mira\ETS\Movable.hpp:66:                }
+include\Mira\ETS\Movable.hpp:67:            },
+include\Mira\ETS\Movable.hpp:68:            .MoveFn = []( void* src, void**
+dst ) {
+include\Mira\ETS\Movable.hpp:69:                if constexpr ( sizeof( T ) <=
+k_BufferSize ) {
+include\Mira\ETS\Movable.hpp:70:                    new( *dst ) T( std::move(
+*static_cast < T* >( src ) ) );
+include\Mira\ETS\Movable.hpp:71:                } else {
+include\Mira\ETS\Movable.hpp:72:                    *dst = ::operator new(
+sizeof( T ) );
+include\Mira\ETS\Movable.hpp:73:                    new( *dst ) T( std::move(
+*static_cast < T* >( src ) ) );
+include\Mira\ETS\Movable.hpp:74:                }
+include\Mira\ETS\Movable.hpp:75:            },
+include\Mira\ETS\Movable.hpp:76:            .Size = sizeof( T )
+include\Mira\ETS\Movable.hpp:77:        };
+include\Mira\ETS\Movable.hpp:78:
+include\Mira\ETS\Movable.hpp:79:    public:
+include\Mira\ETS\Movable.hpp:80:        template< MovableInterface T >
+include\Mira\ETS\Movable.hpp:81:        AnyMovable( T value ) :
+include\Mira\ETS\Movable.hpp:82:            m_VTablePtr( &k_VTableInstance < T
+> ) {
+include\Mira\ETS\Movable.hpp:83:            if constexpr ( sizeof( T ) <=
+k_BufferSize ) {
+include\Mira\ETS\Movable.hpp:84:                m_Ptr = &m_Buffer;
+include\Mira\ETS\Movable.hpp:85:            } else {
+include\Mira\ETS\Movable.hpp:86:                m_Ptr = ::operator new(
+sizeof( T ) );
+include\Mira\ETS\Movable.hpp:87:            }
+include\Mira\ETS\Movable.hpp:88:            new( m_Ptr ) T( std::move( value )
+);
+include\Mira\ETS\Movable.hpp:89:        }
+include\Mira\ETS\Movable.hpp:90:
+include\Mira\ETS\Movable.hpp:91:        ~AnyMovable();
+include\Mira\ETS\Movable.hpp:92:
+include\Mira\ETS\Movable.hpp:93:        AnyMovable( const AnyMovable& other );
+include\Mira\ETS\Movable.hpp:94:
+include\Mira\ETS\Movable.hpp:95:        AnyMovable&
+include\Mira\ETS\Movable.hpp:96:        operator=( const AnyMovable& other );
+include\Mira\ETS\Movable.hpp:97:
+include\Mira\ETS\Movable.hpp:98:        AnyMovable( AnyMovable&& other )
+noexcept;
+include\Mira\ETS\Movable.hpp:99:
+include\Mira\ETS\Movable.hpp:100:        AnyMovable&
+include\Mira\ETS\Movable.hpp:101:        operator=( AnyMovable&& other )
+noexcept;
+include\Mira\ETS\Movable.hpp:102:
+include\Mira\ETS\Movable.hpp:103:        void
+include\Mira\ETS\Movable.hpp:104:        Update( float dt );
+include\Mira\ETS\Movable.hpp:105:
+include\Mira\ETS\Movable.hpp:106:        const void*
+include\Mira\ETS\Movable.hpp:107:        GetVTable() const;
+include\Mira\ETS\Movable.hpp:108:
+include\Mira\ETS\Movable.hpp:109:    private:
+include\Mira\ETS\Movable.hpp:110:        alignas( std::max_align_t ) std::byte
+m_Buffer[ k_BufferSize ];
+include\Mira\ETS\Movable.hpp:111:        void* m_Ptr = nullptr;
+include\Mira\ETS\Movable.hpp:112:        const VTable* m_VTablePtr = nullptr;
+include\Mira\ETS\Movable.hpp:113:    };
+include\Mira\ETS\Movable.hpp:114:}
+include\Mira\ETS\Observer.hpp:1://
+include\Mira\ETS\Observer.hpp:2:// Copyright (c) 2025 Mirror Domain Studios.
+All rights reserved.
+include\Mira\ETS\Observer.hpp:3://
+include\Mira\ETS\Observer.hpp:4:
+include\Mira\ETS\Observer.hpp:5:/**
+include\Mira\ETS\Observer.hpp:7: * @brief Observer patterns and event
+definitions for component changes.
+include\Mira\ETS\Observer.hpp:8: */
+include\Mira\ETS\Observer.hpp:9:
+include\Mira\ETS\Observer.hpp:10:#pragma once
+include\Mira\ETS\Observer.hpp:11:
+include\Mira\ETS\Observer.hpp:12:#include <Mira/ETS/SparseSet.hpp>
+include\Mira\ETS\Observer.hpp:13:#include <functional>
+include\Mira\ETS\Observer.hpp:14:
+include\Mira\ETS\Observer.hpp:15:namespace Mira::ETS {
+include\Mira\ETS\Observer.hpp:16:    /**
+include\Mira\ETS\Observer.hpp:17:     * @brief Events triggered by component
+operations.
+include\Mira\ETS\Observer.hpp:18:     */
+include\Mira\ETS\Observer.hpp:19:    enum class ComponentEvent {
+include\Mira\ETS\Observer.hpp:20:        Added,
+include\Mira\ETS\Observer.hpp:21:        Removed,
+include\Mira\ETS\Observer.hpp:22:        Modified
+include\Mira\ETS\Observer.hpp:23:    };
+include\Mira\ETS\Observer.hpp:24:
+include\Mira\ETS\Observer.hpp:25:    /**
+include\Mira\ETS\Observer.hpp:26:     * @brief Callback type for component
+events.
+include\Mira\ETS\Observer.hpp:27:     */
+include\Mira\ETS\Observer.hpp:28:    template< typename Component >
+include\Mira\ETS\Observer.hpp:29:    using ComponentCallback = std::function <
+void( EntityID, Component & ) >;
+include\Mira\ETS\Observer.hpp:30:} // namespace Mira::ETS
+include\Mira\ETS\Prefab.hpp:1://
+include\Mira\ETS\Prefab.hpp:2:// Copyright (c) 2025 Mirror Domain Studios. All
+rights reserved.
+include\Mira\ETS\Prefab.hpp:3://
+include\Mira\ETS\Prefab.hpp:4:
+include\Mira\ETS\Prefab.hpp:5:/**
+include\Mira\ETS\Prefab.hpp:7: * @brief Prefab system for instantiating
+entities from templates.
+include\Mira\ETS\Prefab.hpp:8: */
+include\Mira\ETS\Prefab.hpp:9:
+include\Mira\ETS\Prefab.hpp:10:#pragma once
+include\Mira\ETS\Prefab.hpp:11:
+include\Mira\ETS\Prefab.hpp:12:#include <Mira/ETS/Serialization.hpp>
+include\Mira\ETS\Prefab.hpp:13:#include <simdjson.h>
+include\Mira\ETS\Prefab.hpp:14:#include <string>
+include\Mira\ETS\Prefab.hpp:15:#include <unordered_map>
+include\Mira\ETS\Prefab.hpp:16:#include <memory>
+include\Mira\ETS\Prefab.hpp:17:#include <vector>
+include\Mira\ETS\Prefab.hpp:18:
+include\Mira\ETS\Prefab.hpp:19:namespace Mira::ETS {
+include\Mira\ETS\Prefab.hpp:20:    /**
+include\Mira\ETS\Prefab.hpp:21:     * @brief Manages entity templates
+(Prefabs) that can be instantiated with pre-configured component sets.
+include\Mira\ETS\Prefab.hpp:22:     */
+include\Mira\ETS\Prefab.hpp:23:    class PrefabManager {
+include\Mira\ETS\Prefab.hpp:24:    public:
+include\Mira\ETS\Prefab.hpp:25:        /**
+include\Mira\ETS\Prefab.hpp:26:         * @brief Construct a new Prefab Manager
+include\Mira\ETS\Prefab.hpp:27:         * @param context The serialization
+context used for component deserialization
+include\Mira\ETS\Prefab.hpp:28:         */
+include\Mira\ETS\Prefab.hpp:29:        explicit
+include\Mira\ETS\Prefab.hpp:30:        PrefabManager( SerializationContext&
+context );
+include\Mira\ETS\Prefab.hpp:31:
+include\Mira\ETS\Prefab.hpp:32:        /**
+include\Mira\ETS\Prefab.hpp:33:         * @brief Load prefabs from a JSON
+string
+include\Mira\ETS\Prefab.hpp:34:         * @param json JSON string containing
+prefab definitions
+include\Mira\ETS\Prefab.hpp:35:         * @return Result of the operation
+include\Mira\ETS\Prefab.hpp:36:         *
+include\Mira\ETS\Prefab.hpp:37:         * The JSON should be an object where
+each key is a prefab name and its value
+include\Mira\ETS\Prefab.hpp:38:         * is an object containing component
+names and their data.
+include\Mira\ETS\Prefab.hpp:39:         * Example:
+include\Mira\ETS\Prefab.hpp:40:         * {
+include\Mira\ETS\Prefab.hpp:41:         *   "Player": {
+include\Mira\ETS\Prefab.hpp:42:         *     "Position": {"x": 0, "y": 0},
+include\Mira\ETS\Prefab.hpp:43:         *     "Velocity": {"x": 5, "y": 5}
+include\Mira\ETS\Prefab.hpp:44:         *   }
+include\Mira\ETS\Prefab.hpp:45:         * }
+include\Mira\ETS\Prefab.hpp:46:         */
+include\Mira\ETS\Prefab.hpp:47:        Result
+include\Mira\ETS\Prefab.hpp:48:        LoadPrefabs( const std::string& json );
+include\Mira\ETS\Prefab.hpp:49:
+include\Mira\ETS\Prefab.hpp:50:        /**
+include\Mira\ETS\Prefab.hpp:51:         * @brief Instantiate a prefab into a
+world
+include\Mira\ETS\Prefab.hpp:52:         * @param prefabName The name of the
+prefab to instantiate
+include\Mira\ETS\Prefab.hpp:53:         * @param world The world to create the
+entity in
+include\Mira\ETS\Prefab.hpp:54:         * @return EntityID The ID of the newly
+created entity, or k_NullIndex if failed
+include\Mira\ETS\Prefab.hpp:55:         */
+include\Mira\ETS\Prefab.hpp:56:        EntityID
+include\Mira\ETS\Prefab.hpp:57:        Instantiate( const std::string&
+prefabName, World& world );
+include\Mira\ETS\Prefab.hpp:58:
+include\Mira\ETS\Prefab.hpp:59:        /**
+include\Mira\ETS\Prefab.hpp:60:         * @brief Set the error reporter for
+this manager.
+include\Mira\ETS\Prefab.hpp:61:         * @param reporter Pointer to the error
+reporter
+include\Mira\ETS\Prefab.hpp:62:         */
+include\Mira\ETS\Prefab.hpp:63:        void
+include\Mira\ETS\Prefab.hpp:64:        SetErrorReporter( ErrorReporter*
+reporter ) {
+include\Mira\ETS\Prefab.hpp:65:            m_Reporter = reporter;
+include\Mira\ETS\Prefab.hpp:66:        }
+include\Mira\ETS\Prefab.hpp:67:
+include\Mira\ETS\Prefab.hpp:68:    private:
+include\Mira\ETS\Prefab.hpp:69:        SerializationContext& m_Context;
+include\Mira\ETS\Prefab.hpp:70:        std::vector < std::unique_ptr <
+simdjson::dom::parser > > m_Parsers;
+include\Mira\ETS\Prefab.hpp:71:        std::unordered_map < std::string,
+simdjson::dom::object > m_Prefabs;
+include\Mira\ETS\Prefab.hpp:72:        ErrorReporter* m_Reporter =
+&DefaultErrorReporter;
+include\Mira\ETS\Prefab.hpp:73:    };
+include\Mira\ETS\Prefab.hpp:74:} // namespace Mira::ETS
+include\Mira\ETS\Serialization.hpp:1://
+include\Mira\ETS\Serialization.hpp:2:// Copyright (c) 2025 Mirror Domain
+Studios. All rights reserved.
+include\Mira\ETS\Serialization.hpp:3://
+include\Mira\ETS\Serialization.hpp:4:
+include\Mira\ETS\Serialization.hpp:5:/**
+include\Mira\ETS\Serialization.hpp:7: * @brief Serialization and
+deserialization utilities for the ETS world.
+include\Mira\ETS\Serialization.hpp:8: */
+include\Mira\ETS\Serialization.hpp:9:
+include\Mira\ETS\Serialization.hpp:10:#pragma once
+include\Mira\ETS\Serialization.hpp:11:
+include\Mira\ETS\Serialization.hpp:12:#include <Mira/ETS/World.hpp>
+include\Mira\ETS\Serialization.hpp:13:#include <Mira/ETS/Errors.hpp>
+include\Mira\ETS\Serialization.hpp:14:#include <simdjson.h>
+include\Mira\ETS\Serialization.hpp:15:#include <string>
+include\Mira\ETS\Serialization.hpp:16:#include <unordered_map>
+include\Mira\ETS\Serialization.hpp:17:#include <functional>
+include\Mira\ETS\Serialization.hpp:18:#include <ostream>
+include\Mira\ETS\Serialization.hpp:19:#include <typeindex>
+include\Mira\ETS\Serialization.hpp:20:
+include\Mira\ETS\Serialization.hpp:21:namespace Mira::ETS {
+include\Mira\ETS\Serialization.hpp:22:    /**
+include\Mira\ETS\Serialization.hpp:23:     * @brief Context used to register
+component serializers and perform world serialization.
+include\Mira\ETS\Serialization.hpp:24:     */
+include\Mira\ETS\Serialization.hpp:25:    class SerializationContext {
+include\Mira\ETS\Serialization.hpp:26:    public:
+include\Mira\ETS\Serialization.hpp:27:        using SerializeFn =
+std::function < void( EntityID, World &, std::ostream & ) >;
+include\Mira\ETS\Serialization.hpp:28:        using DeserializeFn =
+std::function < void( EntityID, World &, const simdjson::dom::element & ) >;
+include\Mira\ETS\Serialization.hpp:29:        using BinarySerializeFn =
+std::function < void( EntityID, World &, std::ostream & ) >;
+include\Mira\ETS\Serialization.hpp:30:        using BinaryDeserializeFn =
+std::function < void( EntityID, World &, std::istream & ) >;
+include\Mira\ETS\Serialization.hpp:31:
+include\Mira\ETS\Serialization.hpp:32:        /**
+include\Mira\ETS\Serialization.hpp:33:         * @brief Internal struct to
+hold serialization functions for a component type.
+include\Mira\ETS\Serialization.hpp:34:         */
+include\Mira\ETS\Serialization.hpp:35:        struct ComponentSerializer {
+include\Mira\ETS\Serialization.hpp:36:            std::string name;
+include\Mira\ETS\Serialization.hpp:37:            size_t id;
+include\Mira\ETS\Serialization.hpp:38:            SerializeFn serialize;
+include\Mira\ETS\Serialization.hpp:39:            DeserializeFn deserialize;
+include\Mira\ETS\Serialization.hpp:40:            BinarySerializeFn
+binarySerialize;
+include\Mira\ETS\Serialization.hpp:41:            BinaryDeserializeFn
+binaryDeserialize;
+include\Mira\ETS\Serialization.hpp:42:        };
+include\Mira\ETS\Serialization.hpp:43:
+include\Mira\ETS\Serialization.hpp:44:        /**
+include\Mira\ETS\Serialization.hpp:45:         * @brief Register a component
+type for serialization.
+include\Mira\ETS\Serialization.hpp:46:         * @tparam T Component type
+include\Mira\ETS\Serialization.hpp:47:         * @param name Unique string
+identifier for this component type
+include\Mira\ETS\Serialization.hpp:48:         * @param serialize Function to
+serialize a single component of type T to JSON
+include\Mira\ETS\Serialization.hpp:49:         * @param deserialize Function
+to deserialize a single component of type T from JSON
+include\Mira\ETS\Serialization.hpp:50:         */
+include\Mira\ETS\Serialization.hpp:51:        template< typename T >
+include\Mira\ETS\Serialization.hpp:52:        void
+include\Mira\ETS\Serialization.hpp:53:        Register( const std::string&
+name,
+include\Mira\ETS\Serialization.hpp:54:                  std::function < void(
+const T &, std::ostream & ) > serialize,
+include\Mira\ETS\Serialization.hpp:55:                  std::function < T(
+const simdjson::dom::element & ) > deserialize ) {
+include\Mira\ETS\Serialization.hpp:56:            size_t cid = ComponentID < T
+>::Value();
+include\Mira\ETS\Serialization.hpp:57:            auto& serializer =
+m_SerializersByName[ name ];
+include\Mira\ETS\Serialization.hpp:58:            serializer.name = name;
+include\Mira\ETS\Serialization.hpp:59:            serializer.id = cid;
+include\Mira\ETS\Serialization.hpp:60:            serializer.serialize =
+[serialize]( EntityID id, World& world, std::ostream& os ) {
+include\Mira\ETS\Serialization.hpp:61:                serialize(
+world.GetComponent < T >( id ), os );
+include\Mira\ETS\Serialization.hpp:62:            };
+include\Mira\ETS\Serialization.hpp:63:            serializer.deserialize =
+[deserialize]( EntityID id, World& world, const simdjson::dom::element& el ) {
+include\Mira\ETS\Serialization.hpp:64:                world.AddComponent < T
+>( id, deserialize( el ) );
+include\Mira\ETS\Serialization.hpp:65:            };
+include\Mira\ETS\Serialization.hpp:66:
+include\Mira\ETS\Serialization.hpp:67:            if ( cid >=
+m_SerializersByID.size() ) {
+include\Mira\ETS\Serialization.hpp:68:
+m_SerializersByID.resize( cid + 1, nullptr );
+include\Mira\ETS\Serialization.hpp:69:            }
+include\Mira\ETS\Serialization.hpp:70:            m_SerializersByID[ cid ] =
+&serializer;
+include\Mira\ETS\Serialization.hpp:71:            m_ComponentTypeToName[
+typeid( T ) ] = name;
+include\Mira\ETS\Serialization.hpp:72:        }
+include\Mira\ETS\Serialization.hpp:73:
+include\Mira\ETS\Serialization.hpp:74:        /**
+include\Mira\ETS\Serialization.hpp:75:         * @brief Register binary
+serialization functions for a component type.
+include\Mira\ETS\Serialization.hpp:76:         * @tparam T Component type
+include\Mira\ETS\Serialization.hpp:77:         * @param name Unique string
+identifier for this component type (must match JSON name)
+include\Mira\ETS\Serialization.hpp:78:         * @param serialize Function to
+serialize a single component of type T to binary
+include\Mira\ETS\Serialization.hpp:79:         * @param deserialize Function
+to deserialize a single component of type T from binary
+include\Mira\ETS\Serialization.hpp:80:         */
+include\Mira\ETS\Serialization.hpp:81:        template< typename T >
+include\Mira\ETS\Serialization.hpp:82:        void
+include\Mira\ETS\Serialization.hpp:83:        RegisterBinary( const
+std::string& name,
+include\Mira\ETS\Serialization.hpp:84:                        std::function <
+void( const T &, std::ostream & ) > serialize,
+include\Mira\ETS\Serialization.hpp:85:                        std::function <
+T( std::istream & ) > deserialize ) {
+include\Mira\ETS\Serialization.hpp:86:            size_t cid = ComponentID < T
+>::Value();
+include\Mira\ETS\Serialization.hpp:87:            auto& serializer =
+m_SerializersByName[ name ];
+include\Mira\ETS\Serialization.hpp:88:            serializer.name = name;
+include\Mira\ETS\Serialization.hpp:89:            serializer.id = cid;
+include\Mira\ETS\Serialization.hpp:90:            serializer.binarySerialize =
+[serialize]( EntityID id, World& world, std::ostream& os ) {
+include\Mira\ETS\Serialization.hpp:91:                serialize(
+world.GetComponent < T >( id ), os );
+include\Mira\ETS\Serialization.hpp:92:            };
+include\Mira\ETS\Serialization.hpp:93:            serializer.binaryDeserialize
+= [deserialize]( EntityID id, World& world, std::istream& is ) {
+include\Mira\ETS\Serialization.hpp:94:                world.AddComponent < T
+>( id, deserialize( is ) );
+include\Mira\ETS\Serialization.hpp:95:            };
+include\Mira\ETS\Serialization.hpp:96:
+include\Mira\ETS\Serialization.hpp:97:            if ( cid >=
+m_SerializersByID.size() ) {
+include\Mira\ETS\Serialization.hpp:98:
+m_SerializersByID.resize( cid + 1, nullptr );
+include\Mira\ETS\Serialization.hpp:99:            }
+include\Mira\ETS\Serialization.hpp:100:            m_SerializersByID[ cid ] =
+&serializer;
+include\Mira\ETS\Serialization.hpp:101:            m_ComponentTypeToName[
+typeid( T ) ] = name;
+include\Mira\ETS\Serialization.hpp:102:        }
+include\Mira\ETS\Serialization.hpp:103:
+include\Mira\ETS\Serialization.hpp:104:        /**
+include\Mira\ETS\Serialization.hpp:105:         * @brief Serialize the entire
+world to an output stream in JSON format.
+include\Mira\ETS\Serialization.hpp:106:         * @param world World to
+serialize
+include\Mira\ETS\Serialization.hpp:107:         * @param os Output stream
+include\Mira\ETS\Serialization.hpp:108:         * @return Result of the
+operation
+include\Mira\ETS\Serialization.hpp:109:         */
+include\Mira\ETS\Serialization.hpp:110:        Result
+include\Mira\ETS\Serialization.hpp:111:        Serialize( World& world,
+std::ostream& os );
+include\Mira\ETS\Serialization.hpp:112:
+include\Mira\ETS\Serialization.hpp:113:        /**
+include\Mira\ETS\Serialization.hpp:114:         * @brief Deserialize
+components into a world from a JSON string.
+include\Mira\ETS\Serialization.hpp:115:         * @param world World to
+populate
+include\Mira\ETS\Serialization.hpp:116:         * @param json JSON string
+include\Mira\ETS\Serialization.hpp:117:         * @return Result of the
+operation
+include\Mira\ETS\Serialization.hpp:118:         */
+include\Mira\ETS\Serialization.hpp:119:        Result
+include\Mira\ETS\Serialization.hpp:120:        Deserialize( World& world,
+const std::string& json );
+include\Mira\ETS\Serialization.hpp:121:
+include\Mira\ETS\Serialization.hpp:122:        /**
+include\Mira\ETS\Serialization.hpp:123:         * @brief Serialize the entire
+world to an output stream in binary format.
+include\Mira\ETS\Serialization.hpp:124:         * @param world World to
+serialize
+include\Mira\ETS\Serialization.hpp:125:         * @param os Output stream
+include\Mira\ETS\Serialization.hpp:126:         * @return Result of the
+operation
+include\Mira\ETS\Serialization.hpp:127:         */
+include\Mira\ETS\Serialization.hpp:128:        Result
+include\Mira\ETS\Serialization.hpp:129:        SerializeBinary( World& world,
+std::ostream& os );
+include\Mira\ETS\Serialization.hpp:130:
+include\Mira\ETS\Serialization.hpp:131:        /**
+include\Mira\ETS\Serialization.hpp:132:         * @brief Deserialize
+components into a world from a binary input stream.
+include\Mira\ETS\Serialization.hpp:133:         * @param world World to
+populate
+include\Mira\ETS\Serialization.hpp:134:         * @param is Input stream
+include\Mira\ETS\Serialization.hpp:135:         * @return Result of the
+operation
+include\Mira\ETS\Serialization.hpp:136:         */
+include\Mira\ETS\Serialization.hpp:137:        Result
+include\Mira\ETS\Serialization.hpp:138:        DeserializeBinary( World&
+world, std::istream& is );
+include\Mira\ETS\Serialization.hpp:139:
+include\Mira\ETS\Serialization.hpp:140:        /**
+include\Mira\ETS\Serialization.hpp:141:         * @brief Deserializes a single
+component into an entity.
+include\Mira\ETS\Serialization.hpp:142:         * @param id Entity to add the
+component to
+include\Mira\ETS\Serialization.hpp:143:         * @param world World
+containing the entity
+include\Mira\ETS\Serialization.hpp:144:         * @param name Name of the
+component type
+include\Mira\ETS\Serialization.hpp:145:         * @param el simdjson element
+containing the component data
+include\Mira\ETS\Serialization.hpp:146:         * @return Result of the
+operation
+include\Mira\ETS\Serialization.hpp:147:         */
+include\Mira\ETS\Serialization.hpp:148:        Result
+include\Mira\ETS\Serialization.hpp:149:        DeserializeComponent( EntityID
+id, World& world, const std::string& name, const simdjson::dom::element& el );
+include\Mira\ETS\Serialization.hpp:150:
+include\Mira\ETS\Serialization.hpp:151:        /**
+include\Mira\ETS\Serialization.hpp:152:         * @brief Set the error
+reporter for this context.
+include\Mira\ETS\Serialization.hpp:153:         * @param reporter Pointer to
+the error reporter
+include\Mira\ETS\Serialization.hpp:154:         */
+include\Mira\ETS\Serialization.hpp:155:        void
+include\Mira\ETS\Serialization.hpp:156:        SetErrorReporter(
+ErrorReporter* reporter ) {
+include\Mira\ETS\Serialization.hpp:157:            m_Reporter = reporter;
+include\Mira\ETS\Serialization.hpp:158:        }
+include\Mira\ETS\Serialization.hpp:159:
+include\Mira\ETS\Serialization.hpp:160:    private:
+include\Mira\ETS\Serialization.hpp:161:        std::unordered_map <
+std::string, ComponentSerializer > m_SerializersByName;
+include\Mira\ETS\Serialization.hpp:162:        std::vector <
+ComponentSerializer* > m_SerializersByID;
+include\Mira\ETS\Serialization.hpp:163:        std::unordered_map <
+std::type_index, std::string > m_ComponentTypeToName;
+include\Mira\ETS\Serialization.hpp:164:        ErrorReporter* m_Reporter =
+&DefaultErrorReporter;
+include\Mira\ETS\Serialization.hpp:165:    };
+include\Mira\ETS\Serialization.hpp:166:} // namespace Mira::ETS
+include\Mira\ETS\SparseSet.hpp:1://
+include\Mira\ETS\SparseSet.hpp:2:// Copyright (c) 2025 Mirror Domain Studios.
+All rights reserved.
+include\Mira\ETS\SparseSet.hpp:3://
+include\Mira\ETS\SparseSet.hpp:4:
+include\Mira\ETS\SparseSet.hpp:5:/**
+include\Mira\ETS\SparseSet.hpp:7: * @brief Efficient sparse set implementation
+for entity and component storage.
+include\Mira\ETS\SparseSet.hpp:8: *
+include\Mira\ETS\SparseSet.hpp:9: * Optimized to handle Tag components (empty
+structs) without data allocation.
+include\Mira\ETS\SparseSet.hpp:10: */
+include\Mira\ETS\SparseSet.hpp:11:
+include\Mira\ETS\SparseSet.hpp:12:#pragma once
+include\Mira\ETS\SparseSet.hpp:13:
+include\Mira\ETS\SparseSet.hpp:14:#include <vector>
+include\Mira\ETS\SparseSet.hpp:15:#include <limits>
+include\Mira\ETS\SparseSet.hpp:16:#include <cassert>
+include\Mira\ETS\SparseSet.hpp:17:#include <optional>
+include\Mira\ETS\SparseSet.hpp:18:#include <memory>
+include\Mira\ETS\SparseSet.hpp:19:#include <cstdint>
+include\Mira\ETS\SparseSet.hpp:20:#include <type_traits>
+include\Mira\ETS\SparseSet.hpp:21:
+include\Mira\ETS\SparseSet.hpp:22:namespace Mira::ETS {
+include\Mira\ETS\SparseSet.hpp:23:    /**
+include\Mira\ETS\SparseSet.hpp:24:     * @brief Unique identifier for an
+entity.
+include\Mira\ETS\SparseSet.hpp:25:     *
+include\Mira\ETS\SparseSet.hpp:26:     * Entities are 64-bit integers where
+the lower 32 bits are the index
+include\Mira\ETS\SparseSet.hpp:27:     * and the upper 32 bits are the
+generation.
+include\Mira\ETS\SparseSet.hpp:28:     */
+include\Mira\ETS\SparseSet.hpp:29:    using EntityID = uint64_t;
+include\Mira\ETS\SparseSet.hpp:30:
+include\Mira\ETS\SparseSet.hpp:31:    /**
+include\Mira\ETS\SparseSet.hpp:32:     * @brief Value representing an invalid
+or null index.
+include\Mira\ETS\SparseSet.hpp:33:     */
+include\Mira\ETS\SparseSet.hpp:34:    constexpr size_t k_NullIndex =
+std::numeric_limits < size_t >::max();
+include\Mira\ETS\SparseSet.hpp:35:
+include\Mira\ETS\SparseSet.hpp:36:    namespace Internal {
+include\Mira\ETS\SparseSet.hpp:37:        constexpr uint32_t
+include\Mira\ETS\SparseSet.hpp:38:        GetIndex( EntityID entity ) {
+include\Mira\ETS\SparseSet.hpp:39:            return static_cast < uint32_t >(
+entity & 0xFFFFFFFF );
+include\Mira\ETS\SparseSet.hpp:40:        }
+include\Mira\ETS\SparseSet.hpp:41:
+include\Mira\ETS\SparseSet.hpp:42:        constexpr uint32_t
+include\Mira\ETS\SparseSet.hpp:43:        GetGeneration( EntityID entity ) {
+include\Mira\ETS\SparseSet.hpp:44:            return static_cast < uint32_t >(
+entity >> 32 );
+include\Mira\ETS\SparseSet.hpp:45:        }
+include\Mira\ETS\SparseSet.hpp:46:
+include\Mira\ETS\SparseSet.hpp:47:        constexpr size_t k_PageSize = 4096;
+include\Mira\ETS\SparseSet.hpp:48:
+include\Mira\ETS\SparseSet.hpp:49:        constexpr size_t
+include\Mira\ETS\SparseSet.hpp:50:        GetPageID( uint32_t index ) {
+include\Mira\ETS\SparseSet.hpp:51:            return index / k_PageSize;
+include\Mira\ETS\SparseSet.hpp:52:        }
+include\Mira\ETS\SparseSet.hpp:53:
+include\Mira\ETS\SparseSet.hpp:54:        constexpr size_t
+include\Mira\ETS\SparseSet.hpp:55:        GetPageOffset( uint32_t index ) {
+include\Mira\ETS\SparseSet.hpp:56:            return index % k_PageSize;
+include\Mira\ETS\SparseSet.hpp:57:        }
+include\Mira\ETS\SparseSet.hpp:58:    }
+include\Mira\ETS\SparseSet.hpp:59:
+include\Mira\ETS\SparseSet.hpp:60:    /**
+include\Mira\ETS\SparseSet.hpp:61:     * @brief Base interface for sparse
+sets, allowing polymorphic removal.
+include\Mira\ETS\SparseSet.hpp:62:     */
+include\Mira\ETS\SparseSet.hpp:63:    class ISparseSet {
+include\Mira\ETS\SparseSet.hpp:64:    public:
+include\Mira\ETS\SparseSet.hpp:65:        virtual ~ISparseSet() = default;
+include\Mira\ETS\SparseSet.hpp:66:
+include\Mira\ETS\SparseSet.hpp:67:        /**
+include\Mira\ETS\SparseSet.hpp:68:         * @brief Remove an entity from the
+set.
+include\Mira\ETS\SparseSet.hpp:69:         * @param entity Entity to remove
+include\Mira\ETS\SparseSet.hpp:70:         */
+include\Mira\ETS\SparseSet.hpp:71:        virtual void
+include\Mira\ETS\SparseSet.hpp:72:        Remove( EntityID entity ) = 0;
+include\Mira\ETS\SparseSet.hpp:73:
+include\Mira\ETS\SparseSet.hpp:74:        /**
+include\Mira\ETS\SparseSet.hpp:75:         * @brief Check if the set contains
+a component for an entity.
+include\Mira\ETS\SparseSet.hpp:76:         * @param entity Entity ID
+include\Mira\ETS\SparseSet.hpp:77:         * @return true if the entity has a
+component in this set
+include\Mira\ETS\SparseSet.hpp:78:         */
+include\Mira\ETS\SparseSet.hpp:79:        virtual bool
+include\Mira\ETS\SparseSet.hpp:80:        Contains( EntityID entity ) const
+noexcept = 0;
+include\Mira\ETS\SparseSet.hpp:81:
+include\Mira\ETS\SparseSet.hpp:82:        /**
+include\Mira\ETS\SparseSet.hpp:83:         * @brief Get the number of entities
+in this set.
+include\Mira\ETS\SparseSet.hpp:84:         * @return size_t
+include\Mira\ETS\SparseSet.hpp:85:         */
+include\Mira\ETS\SparseSet.hpp:86:        virtual size_t
+include\Mira\ETS\SparseSet.hpp:87:        Size() const noexcept = 0;
+include\Mira\ETS\SparseSet.hpp:88:
+include\Mira\ETS\SparseSet.hpp:89:        /**
+include\Mira\ETS\SparseSet.hpp:90:         * @brief Get the list of entities
+in this set.
+include\Mira\ETS\SparseSet.hpp:91:         * @return const
+std::vector<EntityID>&
+include\Mira\ETS\SparseSet.hpp:92:         */
+include\Mira\ETS\SparseSet.hpp:93:        virtual const std::vector < EntityID
+>&
+include\Mira\ETS\SparseSet.hpp:94:        GetEntities() const noexcept = 0;
+include\Mira\ETS\SparseSet.hpp:95:    };
+include\Mira\ETS\SparseSet.hpp:96:
+include\Mira\ETS\SparseSet.hpp:97:    /**
+include\Mira\ETS\SparseSet.hpp:98:     * @brief Sparse set implementation for
+storing components of type T.
+include\Mira\ETS\SparseSet.hpp:99:     * @tparam Component The type of
+component to store.
+include\Mira\ETS\SparseSet.hpp:100:     */
+include\Mira\ETS\SparseSet.hpp:101:    template< typename Component >
+include\Mira\ETS\SparseSet.hpp:102:    class SparseSet : public ISparseSet {
+include\Mira\ETS\SparseSet.hpp:103:    public:
+include\Mira\ETS\SparseSet.hpp:104:        /**
+include\Mira\ETS\SparseSet.hpp:105:         * @brief Insert a component for an
+entity.
+include\Mira\ETS\SparseSet.hpp:106:         * @param entity Entity ID
+include\Mira\ETS\SparseSet.hpp:107:         * @param component Component data
+include\Mira\ETS\SparseSet.hpp:108:         */
+include\Mira\ETS\SparseSet.hpp:109:        void
+include\Mira\ETS\SparseSet.hpp:110:        Insert( EntityID entity, Component
+component );
+include\Mira\ETS\SparseSet.hpp:111:
+include\Mira\ETS\SparseSet.hpp:112:        /**
+include\Mira\ETS\SparseSet.hpp:113:         * @brief Remove a component from
+an entity.
+include\Mira\ETS\SparseSet.hpp:114:         * @param entity Entity ID
+include\Mira\ETS\SparseSet.hpp:115:         */
+include\Mira\ETS\SparseSet.hpp:116:        void
+include\Mira\ETS\SparseSet.hpp:117:        Remove( EntityID entity ) override;
+include\Mira\ETS\SparseSet.hpp:118:
+include\Mira\ETS\SparseSet.hpp:119:        /**
+include\Mira\ETS\SparseSet.hpp:120:         * @brief Check if the set contains
+a component for an entity.
+include\Mira\ETS\SparseSet.hpp:121:         * @param entity Entity ID
+include\Mira\ETS\SparseSet.hpp:122:         * @return true if the entity has a
+component in this set
+include\Mira\ETS\SparseSet.hpp:123:         */
+include\Mira\ETS\SparseSet.hpp:124:        bool
+include\Mira\ETS\SparseSet.hpp:125:        Contains( EntityID entity ) const
+noexcept override;
+include\Mira\ETS\SparseSet.hpp:126:
+include\Mira\ETS\SparseSet.hpp:127:        /**
+include\Mira\ETS\SparseSet.hpp:128:         * @brief Get the component for an
+entity.
+include\Mira\ETS\SparseSet.hpp:129:         * @param entity Entity ID
+include\Mira\ETS\SparseSet.hpp:130:         * @return Reference to the
+component
+include\Mira\ETS\SparseSet.hpp:131:         */
+include\Mira\ETS\SparseSet.hpp:132:        Component&
+include\Mira\ETS\SparseSet.hpp:133:        Get( EntityID entity );
+include\Mira\ETS\SparseSet.hpp:134:
+include\Mira\ETS\SparseSet.hpp:135:        // STL Interator compatibility
+include\Mira\ETS\SparseSet.hpp:136:        auto
+include\Mira\ETS\SparseSet.hpp:137:        begin() noexcept {
+include\Mira\ETS\SparseSet.hpp:138:            return m_DenseData.begin();
+include\Mira\ETS\SparseSet.hpp:139:        }
+include\Mira\ETS\SparseSet.hpp:140:
+include\Mira\ETS\SparseSet.hpp:141:        auto
+include\Mira\ETS\SparseSet.hpp:142:        end() noexcept {
+include\Mira\ETS\SparseSet.hpp:143:            return m_DenseData.end();
+include\Mira\ETS\SparseSet.hpp:144:        }
+include\Mira\ETS\SparseSet.hpp:145:
+include\Mira\ETS\SparseSet.hpp:146:        size_t
+include\Mira\ETS\SparseSet.hpp:147:        Size() const noexcept override {
+include\Mira\ETS\SparseSet.hpp:148:            return m_DenseData.size();
+include\Mira\ETS\SparseSet.hpp:149:        }
+include\Mira\ETS\SparseSet.hpp:150:
+include\Mira\ETS\SparseSet.hpp:151:        auto
+include\Mira\ETS\SparseSet.hpp:152:        Begin() const noexcept {
+include\Mira\ETS\SparseSet.hpp:153:            return m_DenseData.begin();
+include\Mira\ETS\SparseSet.hpp:154:        }
+include\Mira\ETS\SparseSet.hpp:155:
+include\Mira\ETS\SparseSet.hpp:156:        auto
+include\Mira\ETS\SparseSet.hpp:157:        End() const noexcept {
+include\Mira\ETS\SparseSet.hpp:158:            return m_DenseData.end();
+include\Mira\ETS\SparseSet.hpp:159:        }
+include\Mira\ETS\SparseSet.hpp:160:
+include\Mira\ETS\SparseSet.hpp:161:        std::vector < Component >&
+include\Mira\ETS\SparseSet.hpp:162:        GetData() noexcept {
+include\Mira\ETS\SparseSet.hpp:163:            return m_DenseData;
+include\Mira\ETS\SparseSet.hpp:164:        }
+include\Mira\ETS\SparseSet.hpp:165:
+include\Mira\ETS\SparseSet.hpp:166:        const std::vector < Component >&
+include\Mira\ETS\SparseSet.hpp:167:        GetData() const noexcept {
+include\Mira\ETS\SparseSet.hpp:168:            return m_DenseData;
+include\Mira\ETS\SparseSet.hpp:169:        }
+include\Mira\ETS\SparseSet.hpp:170:
+include\Mira\ETS\SparseSet.hpp:171:        const std::vector < EntityID >&
+include\Mira\ETS\SparseSet.hpp:172:        GetEntities() const noexcept
+override {
+include\Mira\ETS\SparseSet.hpp:173:            return m_DenseToEntity;
+include\Mira\ETS\SparseSet.hpp:174:        }
+include\Mira\ETS\SparseSet.hpp:175:
+include\Mira\ETS\SparseSet.hpp:176:    private:
+include\Mira\ETS\SparseSet.hpp:177:        std::vector < Component >
+m_DenseData;
+include\Mira\ETS\SparseSet.hpp:178:        std::vector < EntityID >
+m_DenseToEntity;
+include\Mira\ETS\SparseSet.hpp:179:        std::vector < std::unique_ptr <
+size_t[ ] > > m_SparsePages;
+include\Mira\ETS\SparseSet.hpp:180:    };
+include\Mira\ETS\SparseSet.hpp:181:
+include\Mira\ETS\SparseSet.hpp:182:    /**
+include\Mira\ETS\SparseSet.hpp:183:     * @brief Specialized sparse set for
+Tag components (empty structs).
+include\Mira\ETS\SparseSet.hpp:184:     *
+include\Mira\ETS\SparseSet.hpp:185:     * Optimized to avoid allocating memory
+for component data, using only
+include\Mira\ETS\SparseSet.hpp:186:     * sparse and dense arrays for entity
+IDs.
+include\Mira\ETS\SparseSet.hpp:187:     */
+include\Mira\ETS\SparseSet.hpp:188:    template< typename Component >
+include\Mira\ETS\SparseSet.hpp:189:        requires std::is_empty_v <
+Component >
+include\Mira\ETS\SparseSet.hpp:190:    class SparseSet < Component > : public
+ISparseSet {
+include\Mira\ETS\SparseSet.hpp:191:    public:
+include\Mira\ETS\SparseSet.hpp:192:        /**
+include\Mira\ETS\SparseSet.hpp:193:         * @brief Register a tag for an
+entity.
+include\Mira\ETS\SparseSet.hpp:194:         * @param entity Entity ID
+include\Mira\ETS\SparseSet.hpp:195:         * @param component Tag instance
+(ignored)
+include\Mira\ETS\SparseSet.hpp:196:         */
+include\Mira\ETS\SparseSet.hpp:197:        void
+include\Mira\ETS\SparseSet.hpp:198:        Insert( EntityID entity, Component
+component = {} );
+include\Mira\ETS\SparseSet.hpp:199:
+include\Mira\ETS\SparseSet.hpp:200:        /**
+include\Mira\ETS\SparseSet.hpp:201:         * @brief Remove a tag from an
+entity.
+include\Mira\ETS\SparseSet.hpp:202:         * @param entity Entity ID
+include\Mira\ETS\SparseSet.hpp:203:         */
+include\Mira\ETS\SparseSet.hpp:204:        void
+include\Mira\ETS\SparseSet.hpp:205:        Remove( EntityID entity ) override;
+include\Mira\ETS\SparseSet.hpp:206:
+include\Mira\ETS\SparseSet.hpp:207:        /**
+include\Mira\ETS\SparseSet.hpp:208:         * @brief Check if an entity has
+this tag.
+include\Mira\ETS\SparseSet.hpp:209:         * @param entity Entity ID
+include\Mira\ETS\SparseSet.hpp:210:         * @return true if the entity has
+the tag
+include\Mira\ETS\SparseSet.hpp:211:         */
+include\Mira\ETS\SparseSet.hpp:212:        bool
+include\Mira\ETS\SparseSet.hpp:213:        Contains( EntityID entity ) const
+noexcept override;
+include\Mira\ETS\SparseSet.hpp:214:
+include\Mira\ETS\SparseSet.hpp:215:        /**
+include\Mira\ETS\SparseSet.hpp:216:         * @brief Get the tag instance for
+an entity.
+include\Mira\ETS\SparseSet.hpp:217:         * @param entity Entity ID
+include\Mira\ETS\SparseSet.hpp:218:         * @return Reference to a static
+tag instance
+include\Mira\ETS\SparseSet.hpp:219:         */
+include\Mira\ETS\SparseSet.hpp:220:        Component&
+include\Mira\ETS\SparseSet.hpp:221:        Get( EntityID entity );
+include\Mira\ETS\SparseSet.hpp:222:
+include\Mira\ETS\SparseSet.hpp:223:        size_t
+include\Mira\ETS\SparseSet.hpp:224:        Size() const noexcept override {
+include\Mira\ETS\SparseSet.hpp:225:            return m_DenseToEntity.size();
+include\Mira\ETS\SparseSet.hpp:226:        }
+include\Mira\ETS\SparseSet.hpp:227:
+include\Mira\ETS\SparseSet.hpp:228:        const std::vector < EntityID >&
+include\Mira\ETS\SparseSet.hpp:229:        GetEntities() const noexcept
+override {
+include\Mira\ETS\SparseSet.hpp:230:            return m_DenseToEntity;
+include\Mira\ETS\SparseSet.hpp:231:        }
+include\Mira\ETS\SparseSet.hpp:232:
+include\Mira\ETS\SparseSet.hpp:233:    private:
+include\Mira\ETS\SparseSet.hpp:234:        std::vector < EntityID >
+m_DenseToEntity;
+include\Mira\ETS\SparseSet.hpp:235:        std::vector < std::unique_ptr <
+size_t[ ] > > m_SparsePages;
+include\Mira\ETS\SparseSet.hpp:236:    };
+include\Mira\ETS\SparseSet.hpp:237:
+include\Mira\ETS\SparseSet.hpp:238:    // Implementation for non-empty
+components
+include\Mira\ETS\SparseSet.hpp:239:    template< typename Component >
+include\Mira\ETS\SparseSet.hpp:240:    void
+include\Mira\ETS\SparseSet.hpp:241:    SparseSet < Component >::Insert(
+EntityID entity, Component component ) {
+include\Mira\ETS\SparseSet.hpp:242:        uint32_t index =
+Internal::GetIndex( entity );
+include\Mira\ETS\SparseSet.hpp:243:        size_t pageId =
+Internal::GetPageID( index );
+include\Mira\ETS\SparseSet.hpp:244:        size_t pageOffset =
+Internal::GetPageOffset( index );
+include\Mira\ETS\SparseSet.hpp:245:
+include\Mira\ETS\SparseSet.hpp:246:        if ( pageId >= m_SparsePages.size()
+) {
+include\Mira\ETS\SparseSet.hpp:247:            m_SparsePages.resize( pageId +
+1 );
+include\Mira\ETS\SparseSet.hpp:248:        }
+include\Mira\ETS\SparseSet.hpp:249:
+include\Mira\ETS\SparseSet.hpp:250:        if ( !m_SparsePages[ pageId ] ) {
+include\Mira\ETS\SparseSet.hpp:251:            m_SparsePages[ pageId ] =
+std::make_unique < size_t[ ] >( Internal::k_PageSize );
+include\Mira\ETS\SparseSet.hpp:252:            for ( size_t i = 0; i <
+Internal::k_PageSize; ++i ) {
+include\Mira\ETS\SparseSet.hpp:253:                m_SparsePages[ pageId ][ i
+] = k_NullIndex;
+include\Mira\ETS\SparseSet.hpp:254:            }
+include\Mira\ETS\SparseSet.hpp:255:        }
+include\Mira\ETS\SparseSet.hpp:256:
+include\Mira\ETS\SparseSet.hpp:257:        size_t& denseIndex = m_SparsePages[
+pageId ][ pageOffset ];
+include\Mira\ETS\SparseSet.hpp:258:        if ( denseIndex != k_NullIndex ) {
+include\Mira\ETS\SparseSet.hpp:259:            m_DenseData[ denseIndex ] =
+std::move( component );
+include\Mira\ETS\SparseSet.hpp:260:            m_DenseToEntity[ denseIndex ] =
+entity;
+include\Mira\ETS\SparseSet.hpp:261:        } else {
+include\Mira\ETS\SparseSet.hpp:262:            denseIndex = m_DenseData.size();
+include\Mira\ETS\SparseSet.hpp:263:            m_DenseToEntity.push_back(
+entity );
+include\Mira\ETS\SparseSet.hpp:264:            m_DenseData.push_back(
+std::move( component ) );
+include\Mira\ETS\SparseSet.hpp:265:        }
+include\Mira\ETS\SparseSet.hpp:266:    }
+include\Mira\ETS\SparseSet.hpp:267:
+include\Mira\ETS\SparseSet.hpp:268:    template< typename Component >
+include\Mira\ETS\SparseSet.hpp:269:    void
+include\Mira\ETS\SparseSet.hpp:270:    SparseSet < Component >::Remove(
+EntityID entity ) {
+include\Mira\ETS\SparseSet.hpp:271:        uint32_t index =
+Internal::GetIndex( entity );
+include\Mira\ETS\SparseSet.hpp:272:        size_t pageId =
+Internal::GetPageID( index );
+include\Mira\ETS\SparseSet.hpp:273:        size_t pageOffset =
+Internal::GetPageOffset( index );
+include\Mira\ETS\SparseSet.hpp:274:
+include\Mira\ETS\SparseSet.hpp:275:        if ( pageId >= m_SparsePages.size()
+|| !m_SparsePages[ pageId ] ) {
+include\Mira\ETS\SparseSet.hpp:276:            return;
+include\Mira\ETS\SparseSet.hpp:277:        }
+include\Mira\ETS\SparseSet.hpp:278:
+include\Mira\ETS\SparseSet.hpp:279:        size_t denseIndexToRemove =
+m_SparsePages[ pageId ][ pageOffset ];
+include\Mira\ETS\SparseSet.hpp:280:        if ( denseIndexToRemove ==
+k_NullIndex ) {
+include\Mira\ETS\SparseSet.hpp:281:            return;
+include\Mira\ETS\SparseSet.hpp:282:        }
+include\Mira\ETS\SparseSet.hpp:283:
+include\Mira\ETS\SparseSet.hpp:284:        if ( m_DenseToEntity[
+denseIndexToRemove ] != entity ) {
+include\Mira\ETS\SparseSet.hpp:285:            return;
+include\Mira\ETS\SparseSet.hpp:286:        }
+include\Mira\ETS\SparseSet.hpp:287:
+include\Mira\ETS\SparseSet.hpp:288:        size_t lastDenseIndex =
+m_DenseData.size() - 1;
+include\Mira\ETS\SparseSet.hpp:289:
+include\Mira\ETS\SparseSet.hpp:290:        if ( denseIndexToRemove !=
+lastDenseIndex ) {
+include\Mira\ETS\SparseSet.hpp:291:            EntityID lastEntity =
+m_DenseToEntity[ lastDenseIndex ];
+include\Mira\ETS\SparseSet.hpp:292:            uint32_t lastEntityIndex =
+Internal::GetIndex( lastEntity );
+include\Mira\ETS\SparseSet.hpp:293:
+include\Mira\ETS\SparseSet.hpp:294:            m_DenseData[ denseIndexToRemove
+] = std::move( m_DenseData[ lastDenseIndex ] );
+include\Mira\ETS\SparseSet.hpp:295:            m_DenseToEntity[
+denseIndexToRemove ] = lastEntity;
+include\Mira\ETS\SparseSet.hpp:296:
+include\Mira\ETS\SparseSet.hpp:297:            m_SparsePages[
+Internal::GetPageID( lastEntityIndex ) ][ Internal::GetPageOffset(
+lastEntityIndex ) ] =
+include\Mira\ETS\SparseSet.hpp:298:                    denseIndexToRemove;
+include\Mira\ETS\SparseSet.hpp:299:        }
+include\Mira\ETS\SparseSet.hpp:300:
+include\Mira\ETS\SparseSet.hpp:301:        m_DenseData.pop_back();
+include\Mira\ETS\SparseSet.hpp:302:        m_DenseToEntity.pop_back();
+include\Mira\ETS\SparseSet.hpp:303:        m_SparsePages[ pageId ][ pageOffset
+] = k_NullIndex;
+include\Mira\ETS\SparseSet.hpp:304:    }
+include\Mira\ETS\SparseSet.hpp:305:
+include\Mira\ETS\SparseSet.hpp:306:    template< typename Component >
+include\Mira\ETS\SparseSet.hpp:307:    bool
+include\Mira\ETS\SparseSet.hpp:308:    SparseSet < Component >::Contains(
+EntityID entity ) const noexcept {
+include\Mira\ETS\SparseSet.hpp:309:        uint32_t index =
+Internal::GetIndex( entity );
+include\Mira\ETS\SparseSet.hpp:310:        size_t pageId =
+Internal::GetPageID( index );
+include\Mira\ETS\SparseSet.hpp:311:        size_t pageOffset =
+Internal::GetPageOffset( index );
+include\Mira\ETS\SparseSet.hpp:312:
+include\Mira\ETS\SparseSet.hpp:313:        if ( pageId >= m_SparsePages.size()
+|| !m_SparsePages[ pageId ] ) {
+include\Mira\ETS\SparseSet.hpp:314:            return false;
+include\Mira\ETS\SparseSet.hpp:315:        }
+include\Mira\ETS\SparseSet.hpp:316:
+include\Mira\ETS\SparseSet.hpp:317:        size_t denseIndex = m_SparsePages[
+pageId ][ pageOffset ];
+include\Mira\ETS\SparseSet.hpp:318:        return denseIndex != k_NullIndex &&
+m_DenseToEntity[ denseIndex ] == entity;
+include\Mira\ETS\SparseSet.hpp:319:    }
+include\Mira\ETS\SparseSet.hpp:320:
+include\Mira\ETS\SparseSet.hpp:321:    template< typename Component >
+include\Mira\ETS\SparseSet.hpp:322:    Component&
+include\Mira\ETS\SparseSet.hpp:323:    SparseSet < Component >::Get( EntityID
+entity ) {
+include\Mira\ETS\SparseSet.hpp:324:        assert( Contains( entity ) );
+include\Mira\ETS\SparseSet.hpp:325:        uint32_t index =
+Internal::GetIndex( entity );
+include\Mira\ETS\SparseSet.hpp:326:        return m_DenseData[ m_SparsePages[
+Internal::GetPageID( index ) ][ Internal::GetPageOffset( index ) ] ];
+include\Mira\ETS\SparseSet.hpp:327:    }
+include\Mira\ETS\SparseSet.hpp:328:
+include\Mira\ETS\SparseSet.hpp:329:    // Implementation for Tag components
+include\Mira\ETS\SparseSet.hpp:330:    template< typename Component >
+include\Mira\ETS\SparseSet.hpp:331:        requires std::is_empty_v <
+Component >
+include\Mira\ETS\SparseSet.hpp:332:    void
+include\Mira\ETS\SparseSet.hpp:333:    SparseSet < Component >::Insert(
+EntityID entity, Component /*component*/ ) {
+include\Mira\ETS\SparseSet.hpp:334:        uint32_t index =
+Internal::GetIndex( entity );
+include\Mira\ETS\SparseSet.hpp:335:        size_t pageId =
+Internal::GetPageID( index );
+include\Mira\ETS\SparseSet.hpp:336:        size_t pageOffset =
+Internal::GetPageOffset( index );
+include\Mira\ETS\SparseSet.hpp:337:
+include\Mira\ETS\SparseSet.hpp:338:        if ( pageId >= m_SparsePages.size()
+) {
+include\Mira\ETS\SparseSet.hpp:339:            m_SparsePages.resize( pageId +
+1 );
+include\Mira\ETS\SparseSet.hpp:340:        }
+include\Mira\ETS\SparseSet.hpp:341:
+include\Mira\ETS\SparseSet.hpp:342:        if ( !m_SparsePages[ pageId ] ) {
+include\Mira\ETS\SparseSet.hpp:343:            m_SparsePages[ pageId ] =
+std::make_unique < size_t[ ] >( Internal::k_PageSize );
+include\Mira\ETS\SparseSet.hpp:344:            for ( size_t i = 0; i <
+Internal::k_PageSize; ++i ) {
+include\Mira\ETS\SparseSet.hpp:345:                m_SparsePages[ pageId ][ i
+] = k_NullIndex;
+include\Mira\ETS\SparseSet.hpp:346:            }
+include\Mira\ETS\SparseSet.hpp:347:        }
+include\Mira\ETS\SparseSet.hpp:348:
+include\Mira\ETS\SparseSet.hpp:349:        size_t& denseIndex = m_SparsePages[
+pageId ][ pageOffset ];
+include\Mira\ETS\SparseSet.hpp:350:        if ( denseIndex != k_NullIndex ) {
+include\Mira\ETS\SparseSet.hpp:351:            m_DenseToEntity[ denseIndex ] =
+entity;
+include\Mira\ETS\SparseSet.hpp:352:        } else {
+include\Mira\ETS\SparseSet.hpp:353:            denseIndex =
+m_DenseToEntity.size();
+include\Mira\ETS\SparseSet.hpp:354:            m_DenseToEntity.push_back(
+entity );
+include\Mira\ETS\SparseSet.hpp:355:        }
+include\Mira\ETS\SparseSet.hpp:356:    }
+include\Mira\ETS\SparseSet.hpp:357:
+include\Mira\ETS\SparseSet.hpp:358:    template< typename Component >
+include\Mira\ETS\SparseSet.hpp:359:        requires std::is_empty_v <
+Component >
+include\Mira\ETS\SparseSet.hpp:360:    void
+include\Mira\ETS\SparseSet.hpp:361:    SparseSet < Component >::Remove(
+EntityID entity ) {
+include\Mira\ETS\SparseSet.hpp:362:        uint32_t index =
+Internal::GetIndex( entity );
+include\Mira\ETS\SparseSet.hpp:363:        size_t pageId =
+Internal::GetPageID( index );
+include\Mira\ETS\SparseSet.hpp:364:        size_t pageOffset =
+Internal::GetPageOffset( index );
+include\Mira\ETS\SparseSet.hpp:365:
+include\Mira\ETS\SparseSet.hpp:366:        if ( pageId >= m_SparsePages.size()
+|| !m_SparsePages[ pageId ] ) {
+include\Mira\ETS\SparseSet.hpp:367:            return;
+include\Mira\ETS\SparseSet.hpp:368:        }
+include\Mira\ETS\SparseSet.hpp:369:
+include\Mira\ETS\SparseSet.hpp:370:        size_t denseIndexToRemove =
+m_SparsePages[ pageId ][ pageOffset ];
+include\Mira\ETS\SparseSet.hpp:371:        if ( denseIndexToRemove ==
+k_NullIndex ) {
+include\Mira\ETS\SparseSet.hpp:372:            return;
+include\Mira\ETS\SparseSet.hpp:373:        }
+include\Mira\ETS\SparseSet.hpp:374:
+include\Mira\ETS\SparseSet.hpp:375:        if ( m_DenseToEntity[
+denseIndexToRemove ] != entity ) {
+include\Mira\ETS\SparseSet.hpp:376:            return;
+include\Mira\ETS\SparseSet.hpp:377:        }
+include\Mira\ETS\SparseSet.hpp:378:
+include\Mira\ETS\SparseSet.hpp:379:        size_t lastDenseIndex =
+m_DenseToEntity.size() - 1;
+include\Mira\ETS\SparseSet.hpp:380:
+include\Mira\ETS\SparseSet.hpp:381:        if ( denseIndexToRemove !=
+lastDenseIndex ) {
+include\Mira\ETS\SparseSet.hpp:382:            EntityID lastEntity =
+m_DenseToEntity[ lastDenseIndex ];
+include\Mira\ETS\SparseSet.hpp:383:            uint32_t lastEntityIndex =
+Internal::GetIndex( lastEntity );
+include\Mira\ETS\SparseSet.hpp:384:
+include\Mira\ETS\SparseSet.hpp:385:            m_DenseToEntity[
+denseIndexToRemove ] = lastEntity;
+include\Mira\ETS\SparseSet.hpp:386:
+include\Mira\ETS\SparseSet.hpp:387:            m_SparsePages[
+Internal::GetPageID( lastEntityIndex ) ][ Internal::GetPageOffset(
+lastEntityIndex ) ] =
+include\Mira\ETS\SparseSet.hpp:388:                    denseIndexToRemove;
+include\Mira\ETS\SparseSet.hpp:389:        }
+include\Mira\ETS\SparseSet.hpp:390:
+include\Mira\ETS\SparseSet.hpp:391:        m_DenseToEntity.pop_back();
+include\Mira\ETS\SparseSet.hpp:392:        m_SparsePages[ pageId ][ pageOffset
+] = k_NullIndex;
+include\Mira\ETS\SparseSet.hpp:393:    }
+include\Mira\ETS\SparseSet.hpp:394:
+include\Mira\ETS\SparseSet.hpp:395:    template< typename Component >
+include\Mira\ETS\SparseSet.hpp:396:        requires std::is_empty_v <
+Component >
+include\Mira\ETS\SparseSet.hpp:397:    bool
+include\Mira\ETS\SparseSet.hpp:398:    SparseSet < Component >::Contains(
+EntityID entity ) const noexcept {
+include\Mira\ETS\SparseSet.hpp:399:        uint32_t index =
+Internal::GetIndex( entity );
+include\Mira\ETS\SparseSet.hpp:400:        size_t pageId =
+Internal::GetPageID( index );
+include\Mira\ETS\SparseSet.hpp:401:        size_t pageOffset =
+Internal::GetPageOffset( index );
+include\Mira\ETS\SparseSet.hpp:402:
+include\Mira\ETS\SparseSet.hpp:403:        if ( pageId >= m_SparsePages.size()
+|| !m_SparsePages[ pageId ] ) {
+include\Mira\ETS\SparseSet.hpp:404:            return false;
+include\Mira\ETS\SparseSet.hpp:405:        }
+include\Mira\ETS\SparseSet.hpp:406:
+include\Mira\ETS\SparseSet.hpp:407:        size_t denseIndex = m_SparsePages[
+pageId ][ pageOffset ];
+include\Mira\ETS\SparseSet.hpp:408:        return denseIndex != k_NullIndex &&
+m_DenseToEntity[ denseIndex ] == entity;
+include\Mira\ETS\SparseSet.hpp:409:    }
+include\Mira\ETS\SparseSet.hpp:410:
+include\Mira\ETS\SparseSet.hpp:411:    template< typename Component >
+include\Mira\ETS\SparseSet.hpp:412:        requires std::is_empty_v <
+Component >
+include\Mira\ETS\SparseSet.hpp:413:    Component&
+include\Mira\ETS\SparseSet.hpp:414:    SparseSet < Component >::Get(
+[[maybe_unused]] EntityID entity ) {
+include\Mira\ETS\SparseSet.hpp:415:        assert( Contains( entity ) );
+include\Mira\ETS\SparseSet.hpp:416:        static Component instance{};
+include\Mira\ETS\SparseSet.hpp:417:        return instance;
+include\Mira\ETS\SparseSet.hpp:418:    }
+include\Mira\ETS\SparseSet.hpp:419:} // namespace Mira::ETS
+include\Mira\ETS\SystemScheduler.hpp:1://
+include\Mira\ETS\SystemScheduler.hpp:2:// Copyright (c) 2025 Mirror Domain
+Studios. All rights reserved.
+include\Mira\ETS\SystemScheduler.hpp:3://
+include\Mira\ETS\SystemScheduler.hpp:4:
+include\Mira\ETS\SystemScheduler.hpp:5:/**
+include\Mira\ETS\SystemScheduler.hpp:7: * @brief Optimized scheduler for
+executing systems with batch-based dependency graph execution.
+include\Mira\ETS\SystemScheduler.hpp:8: */
+include\Mira\ETS\SystemScheduler.hpp:9:
+include\Mira\ETS\SystemScheduler.hpp:10:#pragma once
+include\Mira\ETS\SystemScheduler.hpp:11:
+include\Mira\ETS\SystemScheduler.hpp:12:#include <Mira/ETS/ThreadPool.hpp>
+include\Mira\ETS\SystemScheduler.hpp:13:#include <algorithm>
+include\Mira\ETS\SystemScheduler.hpp:14:#include <execution>
+include\Mira\ETS\SystemScheduler.hpp:15:#include <vector>
+include\Mira\ETS\SystemScheduler.hpp:16:#include <chrono>
+include\Mira\ETS\SystemScheduler.hpp:17:#include <ranges>
+include\Mira\ETS\SystemScheduler.hpp:18:#include <future>
+include\Mira\ETS\SystemScheduler.hpp:19:#include <functional>
+include\Mira\ETS\SystemScheduler.hpp:20:#include <memory>
+include\Mira\ETS\SystemScheduler.hpp:21:#include <string>
+include\Mira\ETS\SystemScheduler.hpp:22:#include <unordered_map>
+include\Mira\ETS\SystemScheduler.hpp:23:#include <set>
+include\Mira\ETS\SystemScheduler.hpp:24:#include <latch>
+include\Mira\ETS\SystemScheduler.hpp:25:
+include\Mira\ETS\SystemScheduler.hpp:26:namespace Mira::ETS {
+include\Mira\ETS\SystemScheduler.hpp:27:    /**
+include\Mira\ETS\SystemScheduler.hpp:28:     * @brief Simple 2D vector
+structure.
+include\Mira\ETS\SystemScheduler.hpp:29:     */
+include\Mira\ETS\SystemScheduler.hpp:30:    struct Vec2 {
+include\Mira\ETS\SystemScheduler.hpp:31:        float X, Y;
+include\Mira\ETS\SystemScheduler.hpp:32:    };
+include\Mira\ETS\SystemScheduler.hpp:33:
+include\Mira\ETS\SystemScheduler.hpp:34:    /**
+include\Mira\ETS\SystemScheduler.hpp:35:     * @brief Run physics update in
+parallel using C++ execution policies.
+include\Mira\ETS\SystemScheduler.hpp:36:     */
+include\Mira\ETS\SystemScheduler.hpp:37:    void
+include\Mira\ETS\SystemScheduler.hpp:38:    RunPhysicsParallel( std::vector <
+Vec2 >& positions, const std::vector < Vec2 >& velocities, float dt );
+include\Mira\ETS\SystemScheduler.hpp:39:
+include\Mira\ETS\SystemScheduler.hpp:40:    /**
+include\Mira\ETS\SystemScheduler.hpp:41:     * @brief Run physics update
+sequentially.
+include\Mira\ETS\SystemScheduler.hpp:42:     */
+include\Mira\ETS\SystemScheduler.hpp:43:    void
+include\Mira\ETS\SystemScheduler.hpp:44:    RunPhysicsSequential( std::vector
+< Vec2 >& positions, const std::vector < Vec2 >& velocities, float dt );
+include\Mira\ETS\SystemScheduler.hpp:45:
+include\Mira\ETS\SystemScheduler.hpp:46:    /**
+include\Mira\ETS\SystemScheduler.hpp:47:     * @brief Manages and executes
+systems in the ECS world.
+include\Mira\ETS\SystemScheduler.hpp:48:     */
+include\Mira\ETS\SystemScheduler.hpp:49:    class SystemScheduler {
+include\Mira\ETS\SystemScheduler.hpp:50:    public:
+include\Mira\ETS\SystemScheduler.hpp:51:        SystemScheduler();
+include\Mira\ETS\SystemScheduler.hpp:52:
+include\Mira\ETS\SystemScheduler.hpp:53:        /**
+include\Mira\ETS\SystemScheduler.hpp:54:         * @brief Add a system to be
+executed.
+include\Mira\ETS\SystemScheduler.hpp:55:         * @param system Function or
+lambda representing the system
+include\Mira\ETS\SystemScheduler.hpp:56:         */
+include\Mira\ETS\SystemScheduler.hpp:57:        void
+include\Mira\ETS\SystemScheduler.hpp:58:        AddSystem( std::function <
+void() > system );
+include\Mira\ETS\SystemScheduler.hpp:59:
+include\Mira\ETS\SystemScheduler.hpp:60:        /**
+include\Mira\ETS\SystemScheduler.hpp:61:         * @brief Add a named system
+with dependencies.
+include\Mira\ETS\SystemScheduler.hpp:62:         * @param name Unique name for
+the system
+include\Mira\ETS\SystemScheduler.hpp:63:         * @param system Function or
+lambda representing the system
+include\Mira\ETS\SystemScheduler.hpp:64:         * @param dependencies List of
+system names that must complete before this system starts
+include\Mira\ETS\SystemScheduler.hpp:65:         */
+include\Mira\ETS\SystemScheduler.hpp:66:        void
+include\Mira\ETS\SystemScheduler.hpp:67:        AddSystem( std::string name,
+std::function < void() > system, std::vector < std::string > dependencies = {}
+);
+include\Mira\ETS\SystemScheduler.hpp:68:
+include\Mira\ETS\SystemScheduler.hpp:69:        /**
+include\Mira\ETS\SystemScheduler.hpp:70:         * @brief Run all added
+systems sequentially.
+include\Mira\ETS\SystemScheduler.hpp:71:         */
+include\Mira\ETS\SystemScheduler.hpp:72:        void
+include\Mira\ETS\SystemScheduler.hpp:73:        RunSequential();
+include\Mira\ETS\SystemScheduler.hpp:74:
+include\Mira\ETS\SystemScheduler.hpp:75:        /**
+include\Mira\ETS\SystemScheduler.hpp:76:         * @brief Run all added
+systems in parallel.
+include\Mira\ETS\SystemScheduler.hpp:77:         */
+include\Mira\ETS\SystemScheduler.hpp:78:        void
+include\Mira\ETS\SystemScheduler.hpp:79:        RunParallel();
+include\Mira\ETS\SystemScheduler.hpp:80:
+include\Mira\ETS\SystemScheduler.hpp:81:        /**
+include\Mira\ETS\SystemScheduler.hpp:82:         * @brief Run systems based on
+their dependency graph.
+include\Mira\ETS\SystemScheduler.hpp:83:         * Independent systems will
+run in parallel.
+include\Mira\ETS\SystemScheduler.hpp:84:         */
+include\Mira\ETS\SystemScheduler.hpp:85:        void
+include\Mira\ETS\SystemScheduler.hpp:86:        RunGraph();
+include\Mira\ETS\SystemScheduler.hpp:87:
+include\Mira\ETS\SystemScheduler.hpp:88:        /**
+include\Mira\ETS\SystemScheduler.hpp:89:         * @brief Rebuild the
+dependency graph batches.
+include\Mira\ETS\SystemScheduler.hpp:90:         * This is called
+automatically by RunGraph if the graph has changed.
+include\Mira\ETS\SystemScheduler.hpp:91:         */
+include\Mira\ETS\SystemScheduler.hpp:92:        void
+include\Mira\ETS\SystemScheduler.hpp:93:        RebuildGraph();
+include\Mira\ETS\SystemScheduler.hpp:94:
+include\Mira\ETS\SystemScheduler.hpp:95:        /**
+include\Mira\ETS\SystemScheduler.hpp:96:         * @brief Task-based frame
+execution using Thread Pool
+include\Mira\ETS\SystemScheduler.hpp:97:         * @tparam Systems Variadic
+pack of system types
+include\Mira\ETS\SystemScheduler.hpp:98:         * @param systems Systems to
+execute in parallel
+include\Mira\ETS\SystemScheduler.hpp:99:         */
+include\Mira\ETS\SystemScheduler.hpp:100:        template< typename ...
+Systems >
+include\Mira\ETS\SystemScheduler.hpp:101:        void
+include\Mira\ETS\SystemScheduler.hpp:102:        Frame( Systems&& ... systems
+) {
+include\Mira\ETS\SystemScheduler.hpp:103:            if constexpr ( sizeof...(
+Systems ) == 0 ) return;
+include\Mira\ETS\SystemScheduler.hpp:104:            std::latch latch(
+sizeof...( Systems ) );
+include\Mira\ETS\SystemScheduler.hpp:105:            ( m_Pool->Submit( [ & ] {
+include\Mira\ETS\SystemScheduler.hpp:106:                systems();
+include\Mira\ETS\SystemScheduler.hpp:107:                latch.count_down();
+include\Mira\ETS\SystemScheduler.hpp:108:            } ), ... );
+include\Mira\ETS\SystemScheduler.hpp:109:            latch.wait();
+include\Mira\ETS\SystemScheduler.hpp:110:        }
+include\Mira\ETS\SystemScheduler.hpp:111:
+include\Mira\ETS\SystemScheduler.hpp:112:    private:
+include\Mira\ETS\SystemScheduler.hpp:113:        struct SystemNode {
+include\Mira\ETS\SystemScheduler.hpp:114:            std::string Name;
+include\Mira\ETS\SystemScheduler.hpp:115:            std::function < void() >
+Func;
+include\Mira\ETS\SystemScheduler.hpp:116:            std::vector < std::string
+> Dependencies;
+include\Mira\ETS\SystemScheduler.hpp:117:            std::vector < std::string
+> Dependents;
+include\Mira\ETS\SystemScheduler.hpp:118:        };
+include\Mira\ETS\SystemScheduler.hpp:119:
+include\Mira\ETS\SystemScheduler.hpp:120:        std::vector < std::function <
+void() > > m_Systems;
+include\Mira\ETS\SystemScheduler.hpp:121:        std::unordered_map <
+std::string, SystemNode > m_Graph;
+include\Mira\ETS\SystemScheduler.hpp:122:        std::vector < std::vector <
+std::string > > m_BatchedGraph;
+include\Mira\ETS\SystemScheduler.hpp:123:        bool m_GraphDirty = true;
+include\Mira\ETS\SystemScheduler.hpp:124:        std::unique_ptr < ThreadPool
+> m_Pool;
+include\Mira\ETS\SystemScheduler.hpp:125:    };
+include\Mira\ETS\SystemScheduler.hpp:126:} // namespace Mira::ETS
+include\Mira\ETS\ThreadPool.hpp:1://
+include\Mira\ETS\ThreadPool.hpp:2:// Copyright (c) 2025 Mirror Domain Studios.
+All rights reserved.
+include\Mira\ETS\ThreadPool.hpp:3://
+include\Mira\ETS\ThreadPool.hpp:4:
+include\Mira\ETS\ThreadPool.hpp:5:/**
+include\Mira\ETS\ThreadPool.hpp:7: * @brief High-performance thread pool with
+work-stealing and lock-free task queues.
+include\Mira\ETS\ThreadPool.hpp:8: */
+include\Mira\ETS\ThreadPool.hpp:9:
+include\Mira\ETS\ThreadPool.hpp:10:#pragma once
+include\Mira\ETS\ThreadPool.hpp:11:
+include\Mira\ETS\ThreadPool.hpp:12:#include <vector>
+include\Mira\ETS\ThreadPool.hpp:13:#include <queue>
+include\Mira\ETS\ThreadPool.hpp:14:#include <thread>
+include\Mira\ETS\ThreadPool.hpp:15:#include <mutex>
+include\Mira\ETS\ThreadPool.hpp:16:#include <condition_variable>
+include\Mira\ETS\ThreadPool.hpp:17:#include <functional>
+include\Mira\ETS\ThreadPool.hpp:18:#include <future>
+include\Mira\ETS\ThreadPool.hpp:19:#include <atomic>
+include\Mira\ETS\ThreadPool.hpp:20:#include <array>
+include\Mira\ETS\ThreadPool.hpp:21:#include <memory>
+include\Mira\ETS\ThreadPool.hpp:22:
+include\Mira\ETS\ThreadPool.hpp:23:namespace Mira::ETS {
+include\Mira\ETS\ThreadPool.hpp:24:    /**
+include\Mira\ETS\ThreadPool.hpp:25:     * @brief A lock-free work-stealing
+queue for tasks.
+include\Mira\ETS\ThreadPool.hpp:26:     */
+include\Mira\ETS\ThreadPool.hpp:27:    class WorkStealingQueue {
+include\Mira\ETS\ThreadPool.hpp:28:    public:
+include\Mira\ETS\ThreadPool.hpp:29:        using Task = std::function < void()
+>;
+include\Mira\ETS\ThreadPool.hpp:30:        using TaskPtr = std::shared_ptr <
+Task >;
+include\Mira\ETS\ThreadPool.hpp:31:
+include\Mira\ETS\ThreadPool.hpp:32:        WorkStealingQueue() : m_Top( 0 ),
+m_Bottom( 0 ), m_Tasks{} {
+include\Mira\ETS\ThreadPool.hpp:33:        }
+include\Mira\ETS\ThreadPool.hpp:34:
+include\Mira\ETS\ThreadPool.hpp:35:        bool
+include\Mira\ETS\ThreadPool.hpp:36:        Push( Task task ) {
+include\Mira\ETS\ThreadPool.hpp:37:            size_t b = m_Bottom.load(
+std::memory_order_relaxed );
+include\Mira\ETS\ThreadPool.hpp:38:            size_t t = m_Top.load(
+std::memory_order_acquire );
+include\Mira\ETS\ThreadPool.hpp:39:            if ( b - t >= 1024 ) return
+false;
+include\Mira\ETS\ThreadPool.hpp:40:
+include\Mira\ETS\ThreadPool.hpp:41:            m_Tasks[ b % 1024 ].store(
+std::make_shared < Task >( std::move( task ) ), std::memory_order_release );
+include\Mira\ETS\ThreadPool.hpp:42:            m_Bottom.store( b + 1,
+std::memory_order_release );
+include\Mira\ETS\ThreadPool.hpp:43:            return true;
+include\Mira\ETS\ThreadPool.hpp:44:        }
+include\Mira\ETS\ThreadPool.hpp:45:
+include\Mira\ETS\ThreadPool.hpp:46:        Task
+include\Mira\ETS\ThreadPool.hpp:47:        Pop() {
+include\Mira\ETS\ThreadPool.hpp:48:            size_t b = m_Bottom.load(
+std::memory_order_relaxed );
+include\Mira\ETS\ThreadPool.hpp:49:            if ( b == 0 ) return nullptr;
+include\Mira\ETS\ThreadPool.hpp:50:            b--;
+include\Mira\ETS\ThreadPool.hpp:51:            m_Bottom.store( b,
+std::memory_order_relaxed );
+include\Mira\ETS\ThreadPool.hpp:52:            std::atomic_thread_fence(
+std::memory_order_seq_cst );
+include\Mira\ETS\ThreadPool.hpp:53:            size_t t = m_Top.load(
+std::memory_order_relaxed );
+include\Mira\ETS\ThreadPool.hpp:54:
+include\Mira\ETS\ThreadPool.hpp:55:            if ( t <= b ) {
+include\Mira\ETS\ThreadPool.hpp:56:                auto taskPtr = m_Tasks[ b %
+1024 ].exchange( nullptr, std::memory_order_acq_rel );
+include\Mira\ETS\ThreadPool.hpp:57:                if ( t == b ) {
+include\Mira\ETS\ThreadPool.hpp:58:                    if (
+!m_Top.compare_exchange_strong( t, t + 1, std::memory_order_seq_cst,
+std::memory_order_relaxed ) ) {
+include\Mira\ETS\ThreadPool.hpp:59:                        m_Bottom.store( b +
+1, std::memory_order_relaxed );
+include\Mira\ETS\ThreadPool.hpp:60:                        return nullptr;
+include\Mira\ETS\ThreadPool.hpp:61:                    }
+include\Mira\ETS\ThreadPool.hpp:62:                    m_Bottom.store( b + 1,
+std::memory_order_relaxed );
+include\Mira\ETS\ThreadPool.hpp:63:                }
+include\Mira\ETS\ThreadPool.hpp:64:                if ( !taskPtr ) return
+nullptr;
+include\Mira\ETS\ThreadPool.hpp:65:                return std::move( *taskPtr
+);
+include\Mira\ETS\ThreadPool.hpp:66:            } else {
+include\Mira\ETS\ThreadPool.hpp:67:                m_Bottom.store( b + 1,
+std::memory_order_relaxed );
+include\Mira\ETS\ThreadPool.hpp:68:                return nullptr;
+include\Mira\ETS\ThreadPool.hpp:69:            }
+include\Mira\ETS\ThreadPool.hpp:70:        }
+include\Mira\ETS\ThreadPool.hpp:71:
+include\Mira\ETS\ThreadPool.hpp:72:        Task
+include\Mira\ETS\ThreadPool.hpp:73:        Steal() {
+include\Mira\ETS\ThreadPool.hpp:74:            size_t t = m_Top.load(
+std::memory_order_acquire );
+include\Mira\ETS\ThreadPool.hpp:75:            std::atomic_thread_fence(
+std::memory_order_seq_cst );
+include\Mira\ETS\ThreadPool.hpp:76:            size_t b = m_Bottom.load(
+std::memory_order_acquire );
+include\Mira\ETS\ThreadPool.hpp:77:
+include\Mira\ETS\ThreadPool.hpp:78:            if ( t < b ) {
+include\Mira\ETS\ThreadPool.hpp:79:                if (
+!m_Top.compare_exchange_strong( t, t + 1, std::memory_order_seq_cst,
+std::memory_order_relaxed ) ) {
+include\Mira\ETS\ThreadPool.hpp:80:                    return nullptr;
+include\Mira\ETS\ThreadPool.hpp:81:                }
+include\Mira\ETS\ThreadPool.hpp:82:                auto taskPtr = m_Tasks[ t %
+1024 ].exchange( nullptr, std::memory_order_acq_rel );
+include\Mira\ETS\ThreadPool.hpp:83:                if ( !taskPtr ) return
+nullptr;
+include\Mira\ETS\ThreadPool.hpp:84:                return std::move( *taskPtr
+);
+include\Mira\ETS\ThreadPool.hpp:85:            }
+include\Mira\ETS\ThreadPool.hpp:86:            return nullptr;
+include\Mira\ETS\ThreadPool.hpp:87:        }
+include\Mira\ETS\ThreadPool.hpp:88:
+include\Mira\ETS\ThreadPool.hpp:89:        bool
+include\Mira\ETS\ThreadPool.hpp:90:        IsEmpty() const {
+include\Mira\ETS\ThreadPool.hpp:91:            size_t b = m_Bottom.load(
+std::memory_order_relaxed );
+include\Mira\ETS\ThreadPool.hpp:92:            size_t t = m_Top.load(
+std::memory_order_relaxed );
+include\Mira\ETS\ThreadPool.hpp:93:            return t >= b;
+include\Mira\ETS\ThreadPool.hpp:94:        }
+include\Mira\ETS\ThreadPool.hpp:95:
+include\Mira\ETS\ThreadPool.hpp:96:    private:
+include\Mira\ETS\ThreadPool.hpp:97:        std::atomic < size_t > m_Top;
+include\Mira\ETS\ThreadPool.hpp:98:        std::atomic < size_t > m_Bottom;
+include\Mira\ETS\ThreadPool.hpp:99:        std::array < std::atomic < TaskPtr
+>, 1024 > m_Tasks;
+include\Mira\ETS\ThreadPool.hpp:100:    };
+include\Mira\ETS\ThreadPool.hpp:101:
+include\Mira\ETS\ThreadPool.hpp:102:    /**
+include\Mira\ETS\ThreadPool.hpp:103:     * @brief A thread pool that manages a
+set of worker threads with work-stealing.
+include\Mira\ETS\ThreadPool.hpp:104:     */
+include\Mira\ETS\ThreadPool.hpp:105:    class ThreadPool {
+include\Mira\ETS\ThreadPool.hpp:106:    public:
+include\Mira\ETS\ThreadPool.hpp:107:        /**
+include\Mira\ETS\ThreadPool.hpp:108:         * @brief Construct a new Thread
+Pool.
+include\Mira\ETS\ThreadPool.hpp:109:         * @param threads Number of worker
+threads to create.
+include\Mira\ETS\ThreadPool.hpp:110:         */
+include\Mira\ETS\ThreadPool.hpp:111:        explicit
+include\Mira\ETS\ThreadPool.hpp:112:        ThreadPool( size_t threads ) :
+include\Mira\ETS\ThreadPool.hpp:113:            m_Stop( false ) {
+include\Mira\ETS\ThreadPool.hpp:114:            for ( size_t i = 0; i <
+threads; ++i ) {
+include\Mira\ETS\ThreadPool.hpp:115:                m_Queues.emplace_back(
+std::make_unique < WorkStealingQueue >() );
+include\Mira\ETS\ThreadPool.hpp:116:            }
+include\Mira\ETS\ThreadPool.hpp:117:
+include\Mira\ETS\ThreadPool.hpp:118:            for ( size_t i = 0; i <
+threads; ++i ) {
+include\Mira\ETS\ThreadPool.hpp:119:                m_Workers.emplace_back(
+[this, i] {
+include\Mira\ETS\ThreadPool.hpp:120:                    WorkerLoop( i );
+include\Mira\ETS\ThreadPool.hpp:121:                } );
+include\Mira\ETS\ThreadPool.hpp:122:            }
+include\Mira\ETS\ThreadPool.hpp:123:        }
+include\Mira\ETS\ThreadPool.hpp:124:
+include\Mira\ETS\ThreadPool.hpp:125:        /**
+include\Mira\ETS\ThreadPool.hpp:126:         * @brief Enqueue a task into the
+thread pool.
+include\Mira\ETS\ThreadPool.hpp:127:         * @tparam F Function type
+include\Mira\ETS\ThreadPool.hpp:128:         * @tparam Args Argument types
+include\Mira\ETS\ThreadPool.hpp:129:         * @param f Function to execute
+include\Mira\ETS\ThreadPool.hpp:130:         * @param args Arguments to pass
+to the function
+include\Mira\ETS\ThreadPool.hpp:131:         * @return std::future to track
+the task's progress and result
+include\Mira\ETS\ThreadPool.hpp:132:         */
+include\Mira\ETS\ThreadPool.hpp:133:        template< class F, class ... Args >
+include\Mira\ETS\ThreadPool.hpp:134:        auto
+include\Mira\ETS\ThreadPool.hpp:135:        Enqueue( F&& f, Args&& ... args )
+-> std::future < std::invoke_result_t < F, Args ... > > {
+include\Mira\ETS\ThreadPool.hpp:136:            using return_type =
+std::invoke_result_t < F, Args ... >;
+include\Mira\ETS\ThreadPool.hpp:137:            auto task = std::make_shared <
+std::packaged_task < return_type() > >(
+include\Mira\ETS\ThreadPool.hpp:138:                std::bind( std::forward <
+F >( f ), std::forward < Args >( args ) ... )
+include\Mira\ETS\ThreadPool.hpp:139:            );
+include\Mira\ETS\ThreadPool.hpp:140:            std::future < return_type >
+res = task->get_future();
+include\Mira\ETS\ThreadPool.hpp:141:            Submit( [task]() {
+include\Mira\ETS\ThreadPool.hpp:142:                ( *task )();
+include\Mira\ETS\ThreadPool.hpp:143:            } );
+include\Mira\ETS\ThreadPool.hpp:144:            return res;
+include\Mira\ETS\ThreadPool.hpp:145:        }
+include\Mira\ETS\ThreadPool.hpp:146:
+include\Mira\ETS\ThreadPool.hpp:147:        /**
+include\Mira\ETS\ThreadPool.hpp:148:         * @brief Submit a fire-and-forget
+task.
+include\Mira\ETS\ThreadPool.hpp:149:         * @param task Function to execute
+include\Mira\ETS\ThreadPool.hpp:150:         */
+include\Mira\ETS\ThreadPool.hpp:151:        void
+include\Mira\ETS\ThreadPool.hpp:152:        Submit( std::function < void() >
+task ) {
+include\Mira\ETS\ThreadPool.hpp:153:            if ( t_WorkerIndex != -1 &&
+t_WorkerIndex < ( int ) m_Queues.size() ) {
+include\Mira\ETS\ThreadPool.hpp:154:                if ( m_Queues[
+t_WorkerIndex ]->Push( std::move( task ) ) ) {
+include\Mira\ETS\ThreadPool.hpp:155:                    return;
+include\Mira\ETS\ThreadPool.hpp:156:                }
+include\Mira\ETS\ThreadPool.hpp:157:            }
+include\Mira\ETS\ThreadPool.hpp:158:
+include\Mira\ETS\ThreadPool.hpp:159:            {
+include\Mira\ETS\ThreadPool.hpp:160:                std::unique_lock <
+std::mutex > lock( m_QueueMutex );
+include\Mira\ETS\ThreadPool.hpp:161:                if ( m_Stop ) throw
+std::runtime_error( "Submit on stopped ThreadPool" );
+include\Mira\ETS\ThreadPool.hpp:162:                m_Tasks.emplace(
+std::move( task ) );
+include\Mira\ETS\ThreadPool.hpp:163:            }
+include\Mira\ETS\ThreadPool.hpp:164:            m_Condition.notify_one();
+include\Mira\ETS\ThreadPool.hpp:165:        }
+include\Mira\ETS\ThreadPool.hpp:166:
+include\Mira\ETS\ThreadPool.hpp:167:        ~ThreadPool() {
+include\Mira\ETS\ThreadPool.hpp:168:            {
+include\Mira\ETS\ThreadPool.hpp:169:                std::unique_lock <
+std::mutex > lock( m_QueueMutex );
+include\Mira\ETS\ThreadPool.hpp:170:                m_Stop = true;
+include\Mira\ETS\ThreadPool.hpp:171:            }
+include\Mira\ETS\ThreadPool.hpp:172:            m_Condition.notify_all();
+include\Mira\ETS\ThreadPool.hpp:173:            for ( std::thread& worker :
+m_Workers )
+include\Mira\ETS\ThreadPool.hpp:174:                worker.join();
+include\Mira\ETS\ThreadPool.hpp:175:        }
+include\Mira\ETS\ThreadPool.hpp:176:
+include\Mira\ETS\ThreadPool.hpp:177:    private:
+include\Mira\ETS\ThreadPool.hpp:178:        void
+include\Mira\ETS\ThreadPool.hpp:179:        WorkerLoop( size_t index ) {
+include\Mira\ETS\ThreadPool.hpp:180:            t_WorkerIndex = ( int ) index;
+include\Mira\ETS\ThreadPool.hpp:181:            while ( true ) {
+include\Mira\ETS\ThreadPool.hpp:182:                std::function < void() >
+task;
+include\Mira\ETS\ThreadPool.hpp:183:
+include\Mira\ETS\ThreadPool.hpp:184:                // 1. Try local queue
+include\Mira\ETS\ThreadPool.hpp:185:                task = m_Queues[ index
+]->Pop();
+include\Mira\ETS\ThreadPool.hpp:186:
+include\Mira\ETS\ThreadPool.hpp:187:                // 2. Try global queue
+include\Mira\ETS\ThreadPool.hpp:188:                if ( !task ) {
+include\Mira\ETS\ThreadPool.hpp:189:                    std::unique_lock <
+std::mutex > lock( m_QueueMutex, std::try_to_lock );
+include\Mira\ETS\ThreadPool.hpp:190:                    if ( lock &&
+!m_Tasks.empty() ) {
+include\Mira\ETS\ThreadPool.hpp:191:                        task = std::move(
+m_Tasks.front() );
+include\Mira\ETS\ThreadPool.hpp:192:                        m_Tasks.pop();
+include\Mira\ETS\ThreadPool.hpp:193:                    }
+include\Mira\ETS\ThreadPool.hpp:194:                }
+include\Mira\ETS\ThreadPool.hpp:195:
+include\Mira\ETS\ThreadPool.hpp:196:                // 3. Try stealing
+include\Mira\ETS\ThreadPool.hpp:197:                if ( !task ) {
+include\Mira\ETS\ThreadPool.hpp:198:                    for ( size_t i = 0; i
+< m_Queues.size(); ++i ) {
+include\Mira\ETS\ThreadPool.hpp:199:                        size_t victim = (
+index + i + 1 ) % m_Queues.size();
+include\Mira\ETS\ThreadPool.hpp:200:                        task = m_Queues[
+victim ]->Steal();
+include\Mira\ETS\ThreadPool.hpp:201:                        if ( task ) break;
+include\Mira\ETS\ThreadPool.hpp:202:                    }
+include\Mira\ETS\ThreadPool.hpp:203:                }
+include\Mira\ETS\ThreadPool.hpp:204:
+include\Mira\ETS\ThreadPool.hpp:205:                if ( task ) {
+include\Mira\ETS\ThreadPool.hpp:206:                    task();
+include\Mira\ETS\ThreadPool.hpp:207:                } else {
+include\Mira\ETS\ThreadPool.hpp:208:                    if ( m_Stop ) return;
+include\Mira\ETS\ThreadPool.hpp:209:
+include\Mira\ETS\ThreadPool.hpp:210:                    // Wait for work
+include\Mira\ETS\ThreadPool.hpp:211:                    std::unique_lock <
+std::mutex > lock( m_QueueMutex );
+include\Mira\ETS\ThreadPool.hpp:212:                    m_Condition.wait_for(
+lock, std::chrono::microseconds( 10 ), [this, index] {
+include\Mira\ETS\ThreadPool.hpp:213:                        return m_Stop ||
+!m_Tasks.empty() || !m_Queues[ index ]->IsEmpty();
+include\Mira\ETS\ThreadPool.hpp:214:                    } );
+include\Mira\ETS\ThreadPool.hpp:215:                    if ( m_Stop &&
+m_Tasks.empty() && m_Queues[ index ]->IsEmpty() ) return;
+include\Mira\ETS\ThreadPool.hpp:216:                }
+include\Mira\ETS\ThreadPool.hpp:217:            }
+include\Mira\ETS\ThreadPool.hpp:218:        }
+include\Mira\ETS\ThreadPool.hpp:219:
+include\Mira\ETS\ThreadPool.hpp:220:        inline static thread_local int
+t_WorkerIndex = -1;
+include\Mira\ETS\ThreadPool.hpp:221:
+include\Mira\ETS\ThreadPool.hpp:222:        std::vector < std::thread >
+m_Workers;
+include\Mira\ETS\ThreadPool.hpp:223:        std::vector < std::unique_ptr <
+WorkStealingQueue > > m_Queues;
+include\Mira\ETS\ThreadPool.hpp:224:        std::queue < std::function <
+void() > > m_Tasks;
+include\Mira\ETS\ThreadPool.hpp:225:        std::mutex m_QueueMutex;
+include\Mira\ETS\ThreadPool.hpp:226:        std::condition_variable
+m_Condition;
+include\Mira\ETS\ThreadPool.hpp:227:        bool m_Stop;
+include\Mira\ETS\ThreadPool.hpp:228:    };
+include\Mira\ETS\ThreadPool.hpp:229:}
+include\Mira\ETS\Traits.hpp:1://
+include\Mira\ETS\Traits.hpp:2:// Copyright (c) 2025 Mirror Domain Studios. All
+rights reserved.
+include\Mira\ETS\Traits.hpp:3://
+include\Mira\ETS\Traits.hpp:4:
+include\Mira\ETS\Traits.hpp:5:/**
+include\Mira\ETS\Traits.hpp:7: * @brief Component traits and game entity
+definitions.
+include\Mira\ETS\Traits.hpp:8: */
+include\Mira\ETS\Traits.hpp:9:
+include\Mira\ETS\Traits.hpp:10:#pragma once
+include\Mira\ETS\Traits.hpp:11:
+include\Mira\ETS\Traits.hpp:12:#include "Mira/ETS/Concepts.hpp"
+include\Mira\ETS\Traits.hpp:13:#include <string>
+include\Mira\ETS\Traits.hpp:14:#include <format>
+include\Mira\ETS\Traits.hpp:15:
+include\Mira\ETS\Traits.hpp:16:
+include\Mira\ETS\Traits.hpp:17:namespace Mira::ETS {
+include\Mira\ETS\Traits.hpp:18:
+include\Mira\ETS\Traits.hpp:19:    /**
+include\Mira\ETS\Traits.hpp:20:     * @brief Trait for objects that can
+provide a status string.
+include\Mira\ETS\Traits.hpp:21:     */
+include\Mira\ETS\Traits.hpp:22:    struct LoggableTrait {
+include\Mira\ETS\Traits.hpp:23:        /**
+include\Mira\ETS\Traits.hpp:24:         * @brief Get a status string for the
+object.
+include\Mira\ETS\Traits.hpp:25:         * @tparam Self Type of the object
+(must satisfy HasIdentity and HasPosition)
+include\Mira\ETS\Traits.hpp:26:         * @param self The object instance
+include\Mira\ETS\Traits.hpp:27:         * @return Status string
+include\Mira\ETS\Traits.hpp:28:         */
+include\Mira\ETS\Traits.hpp:29:        template< typename Self >
+include\Mira\ETS\Traits.hpp:30:            requires HasIdentity <
+std::remove_cvref_t < Self > > && HasPosition < std::remove_cvref_t < Self > >
+include\Mira\ETS\Traits.hpp:31:        std::string
+include\Mira\ETS\Traits.hpp:32:        GetStatusString( const Self& self ) {
+include\Mira\ETS\Traits.hpp:33:            return std::format( "Entity[{}]
+Pos: ({:.2f}, {:.2f})", self.Id, self.X, self.Y );
+include\Mira\ETS\Traits.hpp:34:        }
+include\Mira\ETS\Traits.hpp:35:    };
+include\Mira\ETS\Traits.hpp:36:
+include\Mira\ETS\Traits.hpp:37:} // namespace Mira::ETS
+include\Mira\ETS\Version.hpp:1://
+include\Mira\ETS\Version.hpp:2:// Copyright (c) 2025 Mirror Domain Studios.
+All rights reserved.
+include\Mira\ETS\Version.hpp:3://
+include\Mira\ETS\Version.hpp:4:
+include\Mira\ETS\Version.hpp:5:#pragma once
+include\Mira\ETS\Version.hpp:6:
+include\Mira\ETS\Version.hpp:7:#include <string>
+include\Mira\ETS\Version.hpp:8:
+include\Mira\ETS\Version.hpp:9:namespace Mira::ETS {
+include\Mira\ETS\Version.hpp:10:    /**
+include\Mira\ETS\Version.hpp:11:     * @brief Version information for Mira ETS.
+include\Mira\ETS\Version.hpp:12:     */
+include\Mira\ETS\Version.hpp:13:    struct Version {
+include\Mira\ETS\Version.hpp:14:        static constexpr int Major = 1;
+include\Mira\ETS\Version.hpp:15:        static constexpr int Minor = 0;
+include\Mira\ETS\Version.hpp:16:        static constexpr int Patch = 0;
+include\Mira\ETS\Version.hpp:17:
+include\Mira\ETS\Version.hpp:18:        /**
+include\Mira\ETS\Version.hpp:19:         * @brief Get the version as a string.
+include\Mira\ETS\Version.hpp:20:         * @return std::string Version string
+(e.g., "1.0.0")
+include\Mira\ETS\Version.hpp:21:         */
+include\Mira\ETS\Version.hpp:22:        static std::string
+include\Mira\ETS\Version.hpp:23:        ToString() {
+include\Mira\ETS\Version.hpp:24:            return std::to_string( Major ) +
+"." + std::to_string( Minor ) + "." + std::to_string( Patch );
+include\Mira\ETS\Version.hpp:25:        }
+include\Mira\ETS\Version.hpp:26:    };
+include\Mira\ETS\Version.hpp:27:} // namespace Mira::ETS
+include\Mira\ETS\World.hpp:1://
+include\Mira\ETS\World.hpp:2:// Copyright (c) 2025 Mirror Domain Studios. All
+rights reserved.
+include\Mira\ETS\World.hpp:3://
+include\Mira\ETS\World.hpp:4:
+include\Mira\ETS\World.hpp:5:/**
+include\Mira\ETS\World.hpp:7: * @brief Main ECS World class and component
+management.
+include\Mira\ETS\World.hpp:8: */
+include\Mira\ETS\World.hpp:9:
+include\Mira\ETS\World.hpp:10:#pragma once
+include\Mira\ETS\World.hpp:11:
+include\Mira\ETS\World.hpp:12:#include <Mira/ETS/SparseSet.hpp>
+include\Mira\ETS\World.hpp:13:#include <Mira/ETS/Observer.hpp>
+include\Mira\ETS\World.hpp:14:#include <Mira/ETS/ComponentMask.hpp>
+include\Mira\ETS\World.hpp:15:#include <vector>
+include\Mira\ETS\World.hpp:16:#include <memory>
+include\Mira\ETS\World.hpp:17:#include <typeindex>
+include\Mira\ETS\World.hpp:18:#include <unordered_map>
+include\Mira\ETS\World.hpp:19:#include <any>
+include\Mira\ETS\World.hpp:20:#include <utility>
+include\Mira\ETS\World.hpp:21:#include <functional>
+include\Mira\ETS\World.hpp:22:#include <tuple>
+include\Mira\ETS\World.hpp:23:
+include\Mira\ETS\World.hpp:24:namespace Mira::ETS {
+include\Mira\ETS\World.hpp:25:    namespace Internal {
+include\Mira\ETS\World.hpp:26:        size_t
+include\Mira\ETS\World.hpp:27:        GetNextComponentID();
+include\Mira\ETS\World.hpp:28:    }
+include\Mira\ETS\World.hpp:29:
+include\Mira\ETS\World.hpp:30:    template< typename T >
+include\Mira\ETS\World.hpp:31:    struct ComponentID {
+include\Mira\ETS\World.hpp:32:        static size_t
+include\Mira\ETS\World.hpp:33:        Value() {
+include\Mira\ETS\World.hpp:34:            static size_t s_ID =
+Internal::GetNextComponentID();
+include\Mira\ETS\World.hpp:35:            return s_ID;
+include\Mira\ETS\World.hpp:36:        }
+include\Mira\ETS\World.hpp:37:    };
+include\Mira\ETS\World.hpp:38:
+include\Mira\ETS\World.hpp:39:
+include\Mira\ETS\World.hpp:40:    /**
+include\Mira\ETS\World.hpp:41:     * @brief The World class manages entities
+and their components.
+include\Mira\ETS\World.hpp:42:     */
+include\Mira\ETS\World.hpp:43:    class World {
+include\Mira\ETS\World.hpp:44:    public:
+include\Mira\ETS\World.hpp:45:        /**
+include\Mira\ETS\World.hpp:46:         * @brief Create a new entity.
+include\Mira\ETS\World.hpp:47:         * @return EntityID The unique ID of the
+new entity.
+include\Mira\ETS\World.hpp:48:         */
+include\Mira\ETS\World.hpp:49:        EntityID
+include\Mira\ETS\World.hpp:50:        CreateEntity();
+include\Mira\ETS\World.hpp:51:
+include\Mira\ETS\World.hpp:52:        /**
+include\Mira\ETS\World.hpp:53:         * @brief Create multiple entities at
+once.
+include\Mira\ETS\World.hpp:54:         * @param count The number of entities
+to create.
+include\Mira\ETS\World.hpp:55:         * @return std::vector<EntityID> A
+vector containing the IDs of the newly created entities.
+include\Mira\ETS\World.hpp:56:         */
+include\Mira\ETS\World.hpp:57:        std::vector < EntityID >
+include\Mira\ETS\World.hpp:58:        CreateEntitiesBulk( size_t count );
+include\Mira\ETS\World.hpp:59:
+include\Mira\ETS\World.hpp:60:        /**
+include\Mira\ETS\World.hpp:61:         * @brief Create or recreate an entity
+with a specific ID.
+include\Mira\ETS\World.hpp:62:         * @param id The ID to use for the
+entity.
+include\Mira\ETS\World.hpp:63:         * @return EntityID The ID of the entity.
+include\Mira\ETS\World.hpp:64:         * @note If the entity already exists
+and is alive, it returns the existing ID.
+include\Mira\ETS\World.hpp:65:         * If the entity index is already in use
+but with a different generation, it will be updated.
+include\Mira\ETS\World.hpp:66:         */
+include\Mira\ETS\World.hpp:67:        EntityID
+include\Mira\ETS\World.hpp:68:        CreateEntity( EntityID id );
+include\Mira\ETS\World.hpp:69:
+include\Mira\ETS\World.hpp:70:        /**
+include\Mira\ETS\World.hpp:71:         * @brief Destroy an entity and all its
+components.
+include\Mira\ETS\World.hpp:72:         * @param id The ID of the entity to
+destroy.
+include\Mira\ETS\World.hpp:73:         * @note Optimized to only iterate over
+stores that contain the entity's components.
+include\Mira\ETS\World.hpp:74:         */
+include\Mira\ETS\World.hpp:75:        void
+include\Mira\ETS\World.hpp:76:        DestroyEntity( EntityID id );
+include\Mira\ETS\World.hpp:77:
+include\Mira\ETS\World.hpp:78:        /**
+include\Mira\ETS\World.hpp:79:         * @brief Register a callback for a
+component event.
+include\Mira\ETS\World.hpp:80:         * @tparam T Component type
+include\Mira\ETS\World.hpp:81:         * @tparam Func Callback function type
+include\Mira\ETS\World.hpp:82:         * @param event The event to listen for
+include\Mira\ETS\World.hpp:83:         * @param callback The callback function
+include\Mira\ETS\World.hpp:84:         */
+include\Mira\ETS\World.hpp:85:        template< typename T, typename Func >
+include\Mira\ETS\World.hpp:86:        void
+include\Mira\ETS\World.hpp:87:        OnEvent( ComponentEvent event, Func&&
+callback ) {
+include\Mira\ETS\World.hpp:88:            EnsureSignalStorage < T >();
+include\Mira\ETS\World.hpp:89:            auto& signals = GetSignals < T >();
+include\Mira\ETS\World.hpp:90:            switch ( event ) {
+include\Mira\ETS\World.hpp:91:                case ComponentEvent::Added:
+include\Mira\ETS\World.hpp:92:                    signals.onAdded.push_back(
+std::forward < Func >( callback ) );
+include\Mira\ETS\World.hpp:93:                    break;
+include\Mira\ETS\World.hpp:94:                case ComponentEvent::Removed:
+include\Mira\ETS\World.hpp:95:                    signals.onRemoved.push_back(
+std::forward < Func >( callback ) );
+include\Mira\ETS\World.hpp:96:                    break;
+include\Mira\ETS\World.hpp:97:                case ComponentEvent::Modified:
+include\Mira\ETS\World.hpp:98:
+signals.onModified.push_back( std::forward < Func >( callback ) );
+include\Mira\ETS\World.hpp:99:                    break;
+include\Mira\ETS\World.hpp:100:            }
+include\Mira\ETS\World.hpp:101:        }
+include\Mira\ETS\World.hpp:102:
+include\Mira\ETS\World.hpp:103:        /**
+include\Mira\ETS\World.hpp:104:         * @brief Update a component and
+trigger the Modified event.
+include\Mira\ETS\World.hpp:105:         * @tparam T Component type
+include\Mira\ETS\World.hpp:106:         * @tparam Func Function type that
+takes a reference to the component
+include\Mira\ETS\World.hpp:107:         * @param id Entity ID
+include\Mira\ETS\World.hpp:108:         * @param func Function to update the
+component
+include\Mira\ETS\World.hpp:109:         */
+include\Mira\ETS\World.hpp:110:        template< typename T, typename Func >
+include\Mira\ETS\World.hpp:111:        void
+include\Mira\ETS\World.hpp:112:        PatchComponent( EntityID id, Func&&
+func ) {
+include\Mira\ETS\World.hpp:113:            if ( HasComponent < T >( id ) ) {
+include\Mira\ETS\World.hpp:114:                auto& component = GetComponent
+< T >( id );
+include\Mira\ETS\World.hpp:115:                func( component );
+include\Mira\ETS\World.hpp:116:                TriggerEvent < T >( id,
+ComponentEvent::Modified );
+include\Mira\ETS\World.hpp:117:            }
+include\Mira\ETS\World.hpp:118:        }
+include\Mira\ETS\World.hpp:119:
+include\Mira\ETS\World.hpp:120:        /**
+include\Mira\ETS\World.hpp:121:         * @brief Add a component to an entity.
+include\Mira\ETS\World.hpp:122:         * @tparam T Component type
+include\Mira\ETS\World.hpp:123:         * @param id Entity ID
+include\Mira\ETS\World.hpp:124:         * @param component Component data
+include\Mira\ETS\World.hpp:125:         */
+include\Mira\ETS\World.hpp:126:        template< typename T >
+include\Mira\ETS\World.hpp:127:        void
+include\Mira\ETS\World.hpp:128:        AddComponent( EntityID id, T component
+) {
+include\Mira\ETS\World.hpp:129:            uint32_t index =
+Internal::GetIndex( id );
+include\Mira\ETS\World.hpp:130:            if ( index >=
+m_EntitySignatures.size() ) {
+include\Mira\ETS\World.hpp:131:                m_EntitySignatures.resize(
+index + 1 );
+include\Mira\ETS\World.hpp:132:            }
+include\Mira\ETS\World.hpp:133:
+include\Mira\ETS\World.hpp:134:            auto& store = GetStore < T >();
+include\Mira\ETS\World.hpp:135:            store.Insert( id, std::move(
+component ) );
+include\Mira\ETS\World.hpp:136:
+include\Mira\ETS\World.hpp:137:            size_t compId = ComponentID <
+std::remove_cvref_t < T > >::Value();
+include\Mira\ETS\World.hpp:138:            m_EntitySignatures[ index ].Set(
+compId );
+include\Mira\ETS\World.hpp:139:
+include\Mira\ETS\World.hpp:140:            if ( compId >= m_StoresByID.size()
+) {
+include\Mira\ETS\World.hpp:141:                m_StoresByID.resize( compId +
+1, nullptr );
+include\Mira\ETS\World.hpp:142:            }
+include\Mira\ETS\World.hpp:143:            m_StoresByID[ compId ] = &store;
+include\Mira\ETS\World.hpp:144:
+include\Mira\ETS\World.hpp:145:            EnsureSignalStorage < T >();
+include\Mira\ETS\World.hpp:146:            TriggerEvent < T >( id,
+ComponentEvent::Added );
+include\Mira\ETS\World.hpp:147:        }
+include\Mira\ETS\World.hpp:148:
+include\Mira\ETS\World.hpp:149:        /**
+include\Mira\ETS\World.hpp:150:         * @brief Remove a component from an
+entity.
+include\Mira\ETS\World.hpp:151:         * @tparam T Component type
+include\Mira\ETS\World.hpp:152:         * @param id Entity ID
+include\Mira\ETS\World.hpp:153:         */
+include\Mira\ETS\World.hpp:154:        template< typename T >
+include\Mira\ETS\World.hpp:155:        void
+include\Mira\ETS\World.hpp:156:        RemoveComponent( EntityID id ) {
+include\Mira\ETS\World.hpp:157:            uint32_t index =
+Internal::GetIndex( id );
+include\Mira\ETS\World.hpp:158:            if ( index <
+m_EntitySignatures.size() && HasComponent < T >( id ) ) {
+include\Mira\ETS\World.hpp:159:                TriggerEvent < T >( id,
+ComponentEvent::Removed );
+include\Mira\ETS\World.hpp:160:                GetStore < T >().Remove( id );
+include\Mira\ETS\World.hpp:161:                m_EntitySignatures[ index
+].Reset( ComponentID < std::remove_cvref_t < T > >::Value() );
+include\Mira\ETS\World.hpp:162:            }
+include\Mira\ETS\World.hpp:163:        }
+include\Mira\ETS\World.hpp:164:
+include\Mira\ETS\World.hpp:165:        /**
+include\Mira\ETS\World.hpp:166:         * @brief Get a reference to a
+component of an entity.
+include\Mira\ETS\World.hpp:167:         * @tparam T Component type
+include\Mira\ETS\World.hpp:168:         * @param id Entity ID
+include\Mira\ETS\World.hpp:169:         * @return T& Reference to the component
+include\Mira\ETS\World.hpp:170:         */
+include\Mira\ETS\World.hpp:171:        template< typename T >
+include\Mira\ETS\World.hpp:172:        T&
+include\Mira\ETS\World.hpp:173:        GetComponent( EntityID id ) {
+include\Mira\ETS\World.hpp:174:            return GetStore < T >().Get( id );
+include\Mira\ETS\World.hpp:175:        }
+include\Mira\ETS\World.hpp:176:
+include\Mira\ETS\World.hpp:177:        /**
+include\Mira\ETS\World.hpp:178:         * @brief Check if an entity has a
+component of type T.
+include\Mira\ETS\World.hpp:179:         * @tparam T Component type
+include\Mira\ETS\World.hpp:180:         * @param id Entity ID
+include\Mira\ETS\World.hpp:181:         * @return true if the entity has the
+component
+include\Mira\ETS\World.hpp:182:         */
+include\Mira\ETS\World.hpp:183:        template< typename T >
+include\Mira\ETS\World.hpp:184:        bool
+include\Mira\ETS\World.hpp:185:        HasComponent( EntityID id ) const {
+include\Mira\ETS\World.hpp:186:            uint32_t index =
+Internal::GetIndex( id );
+include\Mira\ETS\World.hpp:187:            if ( index >=
+m_EntitySignatures.size() ) return false;
+include\Mira\ETS\World.hpp:188:            return m_EntitySignatures[ index
+].Test( ComponentID < std::remove_cvref_t < T > >::Value() );
+include\Mira\ETS\World.hpp:189:        }
+include\Mira\ETS\World.hpp:190:
+include\Mira\ETS\World.hpp:191:        /**
+include\Mira\ETS\World.hpp:192:         * @brief Check if an entity has a
+component by ID.
+include\Mira\ETS\World.hpp:193:         * @param id Entity ID
+include\Mira\ETS\World.hpp:194:         * @param componentID Component type ID
+include\Mira\ETS\World.hpp:195:         * @return true if the entity has the
+component
+include\Mira\ETS\World.hpp:196:         */
+include\Mira\ETS\World.hpp:197:        bool
+include\Mira\ETS\World.hpp:198:        HasComponent( EntityID id, size_t
+componentID ) const {
+include\Mira\ETS\World.hpp:199:            uint32_t index =
+Internal::GetIndex( id );
+include\Mira\ETS\World.hpp:200:            if ( index >=
+m_EntitySignatures.size() ) return false;
+include\Mira\ETS\World.hpp:201:            return m_EntitySignatures[ index
+].Test( componentID );
+include\Mira\ETS\World.hpp:202:        }
+include\Mira\ETS\World.hpp:203:
+include\Mira\ETS\World.hpp:204:        /**
+include\Mira\ETS\World.hpp:205:         * @brief Generic View for querying
+entities with specific components.
+include\Mira\ETS\World.hpp:206:         * @tparam Components Component types
+to filter by.
+include\Mira\ETS\World.hpp:207:         */
+include\Mira\ETS\World.hpp:208:        template< typename ... Components >
+include\Mira\ETS\World.hpp:209:        class View {
+include\Mira\ETS\World.hpp:210:        public:
+include\Mira\ETS\World.hpp:211:            /**
+include\Mira\ETS\World.hpp:212:             * @brief Construct a new View.
+include\Mira\ETS\World.hpp:213:             * @param world World to query.
+include\Mira\ETS\World.hpp:214:             */
+include\Mira\ETS\World.hpp:215:            View( World& world ) :
+include\Mira\ETS\World.hpp:216:                m_World( world ) {
+include\Mira\ETS\World.hpp:217:                (m_ComponentMask.Set(
+ComponentID < std::remove_cvref_t < Components > >::Value() ), ...);
+include\Mira\ETS\World.hpp:218:            }
+include\Mira\ETS\World.hpp:219:
+include\Mira\ETS\World.hpp:220:            /**
+include\Mira\ETS\World.hpp:221:             * @brief Iterate over all entities
+that have all requested components.
+include\Mira\ETS\World.hpp:222:             * @tparam Func Callback function
+type.
+include\Mira\ETS\World.hpp:223:             * @param func Callback function
+taking (EntityID, Components&...).
+include\Mira\ETS\World.hpp:224:             */
+include\Mira\ETS\World.hpp:225:            template< typename Func >
+include\Mira\ETS\World.hpp:226:            void
+include\Mira\ETS\World.hpp:227:            Each( Func&& func ) {
+include\Mira\ETS\World.hpp:228:                if constexpr ( sizeof...(
+Components ) == 0 ) return;
+include\Mira\ETS\World.hpp:229:
+include\Mira\ETS\World.hpp:230:                // Pre-fetch all stores into a
+tuple of references
+include\Mira\ETS\World.hpp:231:                auto stores = std::tie(
+m_World.GetStore < std::remove_cvref_t < Components > >() ... );
+include\Mira\ETS\World.hpp:232:
+include\Mira\ETS\World.hpp:233:                // Find the smallest sparse set
+to iterate over
+include\Mira\ETS\World.hpp:234:                size_t minSize =
+std::numeric_limits < size_t >::max();
+include\Mira\ETS\World.hpp:235:                void* smallestStorePtr =
+nullptr;
+include\Mira\ETS\World.hpp:236:
+include\Mira\ETS\World.hpp:237:                auto findSmallest =
+[&]<size_t... Is>( std::index_sequence < Is ... > ) {
+include\Mira\ETS\World.hpp:238:                    (( std::get < Is >( stores
+).Size() < minSize
+include\Mira\ETS\World.hpp:239:                           ? ( minSize =
+std::get < Is >( stores ).Size(), smallestStorePtr = &std::get <
+include\Mira\ETS\World.hpp:240:                                   Is >( stores
+) )
+include\Mira\ETS\World.hpp:241:                           : 0 ), ...);
+include\Mira\ETS\World.hpp:242:                };
+include\Mira\ETS\World.hpp:243:                findSmallest(
+std::make_index_sequence < sizeof...( Components ) >{} );
+include\Mira\ETS\World.hpp:244:
+include\Mira\ETS\World.hpp:245:                if ( !smallestStorePtr ) return;
+include\Mira\ETS\World.hpp:246:
+include\Mira\ETS\World.hpp:247:                // Helper to call func with
+components from all stores, using direct access for the driving store
+include\Mira\ETS\World.hpp:248:                auto callEach = [&]<size_t
+DrivingIdx, size_t... Is>( std::index_sequence < Is ... > ) {
+include\Mira\ETS\World.hpp:249:                    auto& drivingStore =
+std::get < DrivingIdx >( stores );
+include\Mira\ETS\World.hpp:250:                    if ( ( void* )
+&drivingStore == smallestStorePtr ) {
+include\Mira\ETS\World.hpp:251:                        const auto& entities =
+drivingStore.GetEntities();
+include\Mira\ETS\World.hpp:252:                        using DrivingT =
+std::remove_cvref_t < std::tuple_element_t < DrivingIdx, std::tuple <
+include\Mira\ETS\World.hpp:253:                            Components ... > >
+>;
+include\Mira\ETS\World.hpp:254:
+include\Mira\ETS\World.hpp:255:                        if constexpr (
+!std::is_empty_v < DrivingT > ) {
+include\Mira\ETS\World.hpp:256:                            auto& drivingData =
+drivingStore.GetData();
+include\Mira\ETS\World.hpp:257:                            for ( size_t i = 0;
+i < entities.size(); ++i ) {
+include\Mira\ETS\World.hpp:258:                                EntityID entity
+= entities[ i ];
+include\Mira\ETS\World.hpp:259:                                uint32_t index
+= Internal::GetIndex( entity );
+include\Mira\ETS\World.hpp:260:                                if (
+m_World.m_EntitySignatures[ index ].Contains( m_ComponentMask ) ) {
+include\Mira\ETS\World.hpp:261:                                    func( (
+[&]<size_t I>() -> decltype(auto) {
+include\Mira\ETS\World.hpp:262:                                        if
+constexpr ( I == DrivingIdx ) return drivingData[ i ];
+include\Mira\ETS\World.hpp:263:                                        else
+return std::get < I >( stores ).Get( entity );
+include\Mira\ETS\World.hpp:264:                                    }.template
+operator() < Is >() ) ... );
+include\Mira\ETS\World.hpp:265:                                }
+include\Mira\ETS\World.hpp:266:                            }
+include\Mira\ETS\World.hpp:267:                        } else {
+include\Mira\ETS\World.hpp:268:                            for ( EntityID
+entity : entities ) {
+include\Mira\ETS\World.hpp:269:                                uint32_t index
+= Internal::GetIndex( entity );
+include\Mira\ETS\World.hpp:270:                                if (
+m_World.m_EntitySignatures[ index ].Contains( m_ComponentMask ) ) {
+include\Mira\ETS\World.hpp:271:                                    func(
+std::get < Is >( stores ).Get( entity ) ... );
+include\Mira\ETS\World.hpp:272:                                }
+include\Mira\ETS\World.hpp:273:                            }
+include\Mira\ETS\World.hpp:274:                        }
+include\Mira\ETS\World.hpp:275:                        return true;
+include\Mira\ETS\World.hpp:276:                    }
+include\Mira\ETS\World.hpp:277:                    return false;
+include\Mira\ETS\World.hpp:278:                };
+include\Mira\ETS\World.hpp:279:
+include\Mira\ETS\World.hpp:280:                // Try each store as the
+driving store (the one that matched smallestStorePtr will execute)
+include\Mira\ETS\World.hpp:281:                auto tryIterate = [&]<size_t...
+Is>( std::index_sequence < Is ... > seq ) {
+include\Mira\ETS\World.hpp:282:                    (callEach.template
+operator() < Is >( seq ) || ...);
+include\Mira\ETS\World.hpp:283:                };
+include\Mira\ETS\World.hpp:284:
+include\Mira\ETS\World.hpp:285:                tryIterate(
+std::make_index_sequence < sizeof...( Components ) >{} );
+include\Mira\ETS\World.hpp:286:            }
+include\Mira\ETS\World.hpp:287:
+include\Mira\ETS\World.hpp:288:        private:
+include\Mira\ETS\World.hpp:289:            World& m_World;
+include\Mira\ETS\World.hpp:290:            ComponentMask m_ComponentMask;
+include\Mira\ETS\World.hpp:291:        };
+include\Mira\ETS\World.hpp:292:
+include\Mira\ETS\World.hpp:293:        /**
+include\Mira\ETS\World.hpp:294:         * @brief Create a view for the
+specified component types.
+include\Mira\ETS\World.hpp:295:         * @tparam Components Component types
+to include in the view.
+include\Mira\ETS\World.hpp:296:         * @return View<Components...> The
+created view.
+include\Mira\ETS\World.hpp:297:         */
+include\Mira\ETS\World.hpp:298:        template< typename ... Components >
+include\Mira\ETS\World.hpp:299:        View < Components ... >
+include\Mira\ETS\World.hpp:300:        GetView() {
+include\Mira\ETS\World.hpp:301:            return View < Components ... >(
+*this );
+include\Mira\ETS\World.hpp:302:        }
+include\Mira\ETS\World.hpp:303:
+include\Mira\ETS\World.hpp:304:        /**
+include\Mira\ETS\World.hpp:305:         * @brief Check if an entity ID is
+still valid and alive.
+include\Mira\ETS\World.hpp:306:         * @param id Entity ID.
+include\Mira\ETS\World.hpp:307:         * @return true if the entity is alive.
+include\Mira\ETS\World.hpp:308:         */
+include\Mira\ETS\World.hpp:309:        bool
+include\Mira\ETS\World.hpp:310:        IsAlive( EntityID id ) const noexcept;
+include\Mira\ETS\World.hpp:311:
+include\Mira\ETS\World.hpp:312:        /**
+include\Mira\ETS\World.hpp:313:         * @brief Get the total number of
+entities ever created (including destroyed ones).
+include\Mira\ETS\World.hpp:314:         * @return size_t Entity count.
+include\Mira\ETS\World.hpp:315:         */
+include\Mira\ETS\World.hpp:316:        size_t
+include\Mira\ETS\World.hpp:317:        GetEntityCount() const noexcept {
+include\Mira\ETS\World.hpp:318:            return m_EntitySignatures.size();
+include\Mira\ETS\World.hpp:319:        }
+include\Mira\ETS\World.hpp:320:
+include\Mira\ETS\World.hpp:321:        /**
+include\Mira\ETS\World.hpp:322:         * @brief Get an EntityID at a specific
+index.
+include\Mira\ETS\World.hpp:323:         * @param index Index.
+include\Mira\ETS\World.hpp:324:         * @return EntityID The entity ID at
+that index.
+include\Mira\ETS\World.hpp:325:         */
+include\Mira\ETS\World.hpp:326:        EntityID
+include\Mira\ETS\World.hpp:327:        GetEntityAt( uint32_t index ) const
+noexcept {
+include\Mira\ETS\World.hpp:328:            return ( static_cast < EntityID >(
+m_EntityGenerations[ index ] ) << 32 ) | index;
+include\Mira\ETS\World.hpp:329:        }
+include\Mira\ETS\World.hpp:330:
+include\Mira\ETS\World.hpp:331:        /**
+include\Mira\ETS\World.hpp:332:         * @brief Get the component mask of an
+entity.
+include\Mira\ETS\World.hpp:333:         * @param id Entity ID.
+include\Mira\ETS\World.hpp:334:         * @return const ComponentMask& The
+component mask.
+include\Mira\ETS\World.hpp:335:         */
+include\Mira\ETS\World.hpp:336:        const ComponentMask&
+include\Mira\ETS\World.hpp:337:        GetEntityMask( EntityID id ) const
+noexcept {
+include\Mira\ETS\World.hpp:338:            return m_EntitySignatures[
+static_cast < uint32_t >( id ) ];
+include\Mira\ETS\World.hpp:339:        }
+include\Mira\ETS\World.hpp:340:
+include\Mira\ETS\World.hpp:341:        // Helper for system updates with
+automatic type deduction from lambda
+include\Mira\ETS\World.hpp:342:        template< typename Func >
+include\Mira\ETS\World.hpp:343:        void
+include\Mira\ETS\World.hpp:344:        SystemUpdate( Func&& func ) {
+include\Mira\ETS\World.hpp:345:            SystemUpdateHelper( std::forward <
+Func >( func ), &std::remove_reference_t < Func >::operator() );
+include\Mira\ETS\World.hpp:346:        }
+include\Mira\ETS\World.hpp:347:
+include\Mira\ETS\World.hpp:348:        // Overload for explicit types
+include\Mira\ETS\World.hpp:349:        template< typename Component, typename
+... OtherComponents, typename Func >
+include\Mira\ETS\World.hpp:350:        void
+include\Mira\ETS\World.hpp:351:        SystemUpdate( Func&& func ) {
+include\Mira\ETS\World.hpp:352:            GetView < Component,
+OtherComponents ... >().Each( std::forward < Func >( func ) );
+include\Mira\ETS\World.hpp:353:        }
+include\Mira\ETS\World.hpp:354:
+include\Mira\ETS\World.hpp:355:    private:
+include\Mira\ETS\World.hpp:356:        struct ISignalStorage {
+include\Mira\ETS\World.hpp:357:            virtual ~ISignalStorage() = default;
+include\Mira\ETS\World.hpp:358:        };
+include\Mira\ETS\World.hpp:359:
+include\Mira\ETS\World.hpp:360:        template< typename T >
+include\Mira\ETS\World.hpp:361:        struct SignalStorage : ISignalStorage {
+include\Mira\ETS\World.hpp:362:            std::vector < ComponentCallback < T
+> > onAdded;
+include\Mira\ETS\World.hpp:363:            std::vector < ComponentCallback < T
+> > onRemoved;
+include\Mira\ETS\World.hpp:364:            std::vector < ComponentCallback < T
+> > onModified;
+include\Mira\ETS\World.hpp:365:        };
+include\Mira\ETS\World.hpp:366:
+include\Mira\ETS\World.hpp:367:        template< typename T >
+include\Mira\ETS\World.hpp:368:        void
+include\Mira\ETS\World.hpp:369:        EnsureSignalStorage() {
+include\Mira\ETS\World.hpp:370:            size_t id = ComponentID < T
+>::Value();
+include\Mira\ETS\World.hpp:371:            if ( id >=
+m_OnRemovedTriggers.size() ) {
+include\Mira\ETS\World.hpp:372:                m_OnRemovedTriggers.resize( id
++ 1 );
+include\Mira\ETS\World.hpp:373:            }
+include\Mira\ETS\World.hpp:374:            if ( !m_OnRemovedTriggers[ id ] ) {
+include\Mira\ETS\World.hpp:375:                m_OnRemovedTriggers[ id ] =
+[this]( EntityID eid ) {
+include\Mira\ETS\World.hpp:376:                    this->TriggerEvent < T >(
+eid, ComponentEvent::Removed );
+include\Mira\ETS\World.hpp:377:                };
+include\Mira\ETS\World.hpp:378:            }
+include\Mira\ETS\World.hpp:379:        }
+include\Mira\ETS\World.hpp:380:
+include\Mira\ETS\World.hpp:381:        template< typename T >
+include\Mira\ETS\World.hpp:382:        SignalStorage < T >&
+include\Mira\ETS\World.hpp:383:        GetSignals() {
+include\Mira\ETS\World.hpp:384:            auto typeIndex = std::type_index(
+typeid( T ) );
+include\Mira\ETS\World.hpp:385:            auto it = m_ComponentSignals.find(
+typeIndex );
+include\Mira\ETS\World.hpp:386:            if ( it == m_ComponentSignals.end()
+) {
+include\Mira\ETS\World.hpp:387:                auto newSignals =
+std::make_shared < SignalStorage < T > >();
+include\Mira\ETS\World.hpp:388:                m_ComponentSignals[ typeIndex ]
+= newSignals;
+include\Mira\ETS\World.hpp:389:                return *newSignals;
+include\Mira\ETS\World.hpp:390:            }
+include\Mira\ETS\World.hpp:391:            return static_cast < SignalStorage
+< T >& >( *it->second );
+include\Mira\ETS\World.hpp:392:        }
+include\Mira\ETS\World.hpp:393:
+include\Mira\ETS\World.hpp:394:        template< typename T >
+include\Mira\ETS\World.hpp:395:        void
+include\Mira\ETS\World.hpp:396:        TriggerEvent( EntityID id,
+ComponentEvent event ) {
+include\Mira\ETS\World.hpp:397:            auto it = m_ComponentSignals.find(
+std::type_index( typeid( T ) ) );
+include\Mira\ETS\World.hpp:398:            if ( it != m_ComponentSignals.end()
+) {
+include\Mira\ETS\World.hpp:399:                auto signals =
+std::static_pointer_cast < SignalStorage < T > >( it->second );
+include\Mira\ETS\World.hpp:400:                auto& component = GetComponent
+< T >( id );
+include\Mira\ETS\World.hpp:401:                switch ( event ) {
+include\Mira\ETS\World.hpp:402:                    case ComponentEvent::Added:
+include\Mira\ETS\World.hpp:403:                        for ( auto& cb :
+signals->onAdded ) cb( id, component );
+include\Mira\ETS\World.hpp:404:                        break;
+include\Mira\ETS\World.hpp:405:                    case
+ComponentEvent::Removed:
+include\Mira\ETS\World.hpp:406:                        for ( auto& cb :
+signals->onRemoved ) cb( id, component );
+include\Mira\ETS\World.hpp:407:                        break;
+include\Mira\ETS\World.hpp:408:                    case
+ComponentEvent::Modified:
+include\Mira\ETS\World.hpp:409:                        for ( auto& cb :
+signals->onModified ) cb( id, component );
+include\Mira\ETS\World.hpp:410:                        break;
+include\Mira\ETS\World.hpp:411:                }
+include\Mira\ETS\World.hpp:412:            }
+include\Mira\ETS\World.hpp:413:        }
+include\Mira\ETS\World.hpp:414:
+include\Mira\ETS\World.hpp:415:        template< typename Func, typename R,
+typename Class, typename ... Args >
+include\Mira\ETS\World.hpp:416:        void
+include\Mira\ETS\World.hpp:417:        SystemUpdateHelper( Func&& func, R (
+Class::*  )( Args ... ) const ) {
+include\Mira\ETS\World.hpp:418:            GetView < std::remove_cvref_t <
+Args > ... >().Each( std::forward < Func >( func ) );
+include\Mira\ETS\World.hpp:419:        }
+include\Mira\ETS\World.hpp:420:
+include\Mira\ETS\World.hpp:421:        template< typename Func, typename R,
+typename Class, typename ... Args >
+include\Mira\ETS\World.hpp:422:        void
+include\Mira\ETS\World.hpp:423:        SystemUpdateHelper( Func&& func, R (
+Class::*  )( Args ... ) ) {
+include\Mira\ETS\World.hpp:424:            GetView < std::remove_cvref_t <
+Args > ... >().Each( std::forward < Func >( func ) );
+include\Mira\ETS\World.hpp:425:        }
+include\Mira\ETS\World.hpp:426:
+include\Mira\ETS\World.hpp:427:        template< typename T >
+include\Mira\ETS\World.hpp:428:        SparseSet < T >&
+include\Mira\ETS\World.hpp:429:        GetStore() {
+include\Mira\ETS\World.hpp:430:            auto typeIndex = std::type_index(
+typeid( T ) );
+include\Mira\ETS\World.hpp:431:            auto it = m_ComponentStores.find(
+typeIndex );
+include\Mira\ETS\World.hpp:432:            if ( it == m_ComponentStores.end()
+) {
+include\Mira\ETS\World.hpp:433:                auto newStore =
+std::make_shared < SparseSet < T > >();
+include\Mira\ETS\World.hpp:434:                m_ComponentStores[ typeIndex ]
+= newStore;
+include\Mira\ETS\World.hpp:435:                return *newStore;
+include\Mira\ETS\World.hpp:436:            }
+include\Mira\ETS\World.hpp:437:            return static_cast < SparseSet < T
+>& >( *it->second );
+include\Mira\ETS\World.hpp:438:        }
+include\Mira\ETS\World.hpp:439:
+include\Mira\ETS\World.hpp:440:        std::vector < ISparseSet* >
+m_StoresByID;
+include\Mira\ETS\World.hpp:441:        std::unordered_map < std::type_index,
+std::shared_ptr < ISparseSet > > m_ComponentStores;
+include\Mira\ETS\World.hpp:442:        std::unordered_map < std::type_index,
+std::shared_ptr < ISignalStorage > > m_ComponentSignals;
+include\Mira\ETS\World.hpp:443:        std::vector < std::function < void(
+EntityID ) > > m_OnRemovedTriggers;
+include\Mira\ETS\World.hpp:444:        std::vector < ComponentMask >
+m_EntitySignatures;
+include\Mira\ETS\World.hpp:445:        std::vector < uint32_t >
+m_EntityGenerations;
+include\Mira\ETS\World.hpp:446:        std::vector < EntityID > m_FreeEntities;
+include\Mira\ETS\World.hpp:447:    };
+include\Mira\ETS\World.hpp:448:} // namespace Mira::ETS
+Mira
+ETS
+src\Mira\ETS\Logger.cpp:1://
+src\Mira\ETS\Logger.cpp:2:// Copyright (c) 2025 Mirror Domain Studios. All
+rights reserved.
+src\Mira\ETS\Logger.cpp:3://
+src\Mira\ETS\Logger.cpp:4:
+src\Mira\ETS\Logger.cpp:5:#include <Mira/ETS/Logger.hpp>
+src\Mira\ETS\Logger.cpp:6:#include <iostream>
+src\Mira\ETS\Logger.cpp:7:
+src\Mira\ETS\Logger.cpp:8:namespace Mira::ETS {
+src\Mira\ETS\Logger.cpp:9:    LogCallback Logger::s_Callback =
+Logger::DefaultCallback;
+src\Mira\ETS\Logger.cpp:10:
+src\Mira\ETS\Logger.cpp:11:    void
+src\Mira\ETS\Logger.cpp:12:    Logger::SetCallback( LogCallback callback ) {
+src\Mira\ETS\Logger.cpp:13:        s_Callback = std::move( callback );
+src\Mira\ETS\Logger.cpp:14:    }
+src\Mira\ETS\Logger.cpp:15:
+src\Mira\ETS\Logger.cpp:16:    void
+src\Mira\ETS\Logger.cpp:17:    Logger::RestoreDefaultCallback() {
+src\Mira\ETS\Logger.cpp:18:        s_Callback = Logger::DefaultCallback;
+src\Mira\ETS\Logger.cpp:19:    }
+src\Mira\ETS\Logger.cpp:20:
+src\Mira\ETS\Logger.cpp:21:    void
+src\Mira\ETS\Logger.cpp:22:    Logger::Log( LogLevel level, std::string_view
+message ) {
+src\Mira\ETS\Logger.cpp:23:        if ( s_Callback ) {
+src\Mira\ETS\Logger.cpp:24:            s_Callback( level, message );
+src\Mira\ETS\Logger.cpp:25:        }
+src\Mira\ETS\Logger.cpp:26:    }
+src\Mira\ETS\Logger.cpp:27:
+src\Mira\ETS\Logger.cpp:28:    void
+src\Mira\ETS\Logger.cpp:29:    Logger::DefaultCallback( LogLevel level,
+std::string_view message ) {
+src\Mira\ETS\Logger.cpp:30:        switch ( level ) {
+src\Mira\ETS\Logger.cpp:31:            case LogLevel::Info:
+src\Mira\ETS\Logger.cpp:32:                std::cout << "[Mira ETS Info] " <<
+message << std::endl;
+src\Mira\ETS\Logger.cpp:33:                break;
+src\Mira\ETS\Logger.cpp:34:            case LogLevel::Warning:
+src\Mira\ETS\Logger.cpp:35:                std::cout << "[Mira ETS Warning] "
+<< message << std::endl;
+src\Mira\ETS\Logger.cpp:36:                break;
+src\Mira\ETS\Logger.cpp:37:            case LogLevel::Error:
+src\Mira\ETS\Logger.cpp:38:                std::cerr << "[Mira ETS Error] " <<
+message << std::endl;
+src\Mira\ETS\Logger.cpp:39:                break;
+src\Mira\ETS\Logger.cpp:40:        }
+src\Mira\ETS\Logger.cpp:41:    }
+src\Mira\ETS\Logger.cpp:42:} // namespace Mira::ETS
+src\Mira\ETS\Movable.cpp:1:#include "Mira/ETS/Movable.hpp"
+src\Mira\ETS\Movable.cpp:2:
+src\Mira\ETS\Movable.cpp:3:namespace Mira::ETS {
+src\Mira\ETS\Movable.cpp:4:    AnyMovable::~AnyMovable() {
+src\Mira\ETS\Movable.cpp:5:        if ( m_VTablePtr&& m_VTablePtr
+src\Mira\ETS\Movable.cpp:6:        ->
+src\Mira\ETS\Movable.cpp:7:        DestroyFn
+src\Mira\ETS\Movable.cpp:8:        )
+src\Mira\ETS\Movable.cpp:9:        {
+src\Mira\ETS\Movable.cpp:10:            m_VTablePtr->DestroyFn( m_Ptr );
+src\Mira\ETS\Movable.cpp:11:            if ( m_Ptr != &m_Buffer ) {
+src\Mira\ETS\Movable.cpp:12:                ::operator delete( m_Ptr );
+src\Mira\ETS\Movable.cpp:13:            }
+src\Mira\ETS\Movable.cpp:14:        }
+src\Mira\ETS\Movable.cpp:15:    }
+src\Mira\ETS\Movable.cpp:16:
+src\Mira\ETS\Movable.cpp:17:    AnyMovable::AnyMovable( const AnyMovable&
+other ) :
+src\Mira\ETS\Movable.cpp:18:        m_VTablePtr( other.m_VTablePtr ) {
+src\Mira\ETS\Movable.cpp:19:        if ( m_VTablePtr&& m_VTablePtr
+src\Mira\ETS\Movable.cpp:20:        ->
+src\Mira\ETS\Movable.cpp:21:        CloneFn
+src\Mira\ETS\Movable.cpp:22:        )
+src\Mira\ETS\Movable.cpp:23:        {
+src\Mira\ETS\Movable.cpp:24:            m_Ptr = &m_Buffer;
+src\Mira\ETS\Movable.cpp:25:            m_VTablePtr->CloneFn( other.m_Ptr,
+&m_Ptr );
+src\Mira\ETS\Movable.cpp:26:        }
+src\Mira\ETS\Movable.cpp:27:    }
+src\Mira\ETS\Movable.cpp:28:
+src\Mira\ETS\Movable.cpp:29:    AnyMovable&
+src\Mira\ETS\Movable.cpp:30:    AnyMovable::operator=( const AnyMovable& other
+) {
+src\Mira\ETS\Movable.cpp:31:        if ( this != &other ) {
+src\Mira\ETS\Movable.cpp:32:            if ( m_VTablePtr&& m_VTablePtr
+src\Mira\ETS\Movable.cpp:33:            ->
+src\Mira\ETS\Movable.cpp:34:            DestroyFn
+src\Mira\ETS\Movable.cpp:35:            )
+src\Mira\ETS\Movable.cpp:36:            {
+src\Mira\ETS\Movable.cpp:37:                m_VTablePtr->DestroyFn( m_Ptr );
+src\Mira\ETS\Movable.cpp:38:                if ( m_Ptr != &m_Buffer ) {
+src\Mira\ETS\Movable.cpp:39:                    ::operator delete( m_Ptr );
+src\Mira\ETS\Movable.cpp:40:                }
+src\Mira\ETS\Movable.cpp:41:            }
+src\Mira\ETS\Movable.cpp:42:            m_VTablePtr = other.m_VTablePtr;
+src\Mira\ETS\Movable.cpp:43:            if ( m_VTablePtr&& m_VTablePtr
+src\Mira\ETS\Movable.cpp:44:            ->
+src\Mira\ETS\Movable.cpp:45:            CloneFn
+src\Mira\ETS\Movable.cpp:46:            )
+src\Mira\ETS\Movable.cpp:47:            {
+src\Mira\ETS\Movable.cpp:48:                m_Ptr = &m_Buffer;
+src\Mira\ETS\Movable.cpp:49:                m_VTablePtr->CloneFn( other.m_Ptr,
+&m_Ptr );
+src\Mira\ETS\Movable.cpp:50:            }
+src\Mira\ETS\Movable.cpp:51:        }
+src\Mira\ETS\Movable.cpp:52:        return *this;
+src\Mira\ETS\Movable.cpp:53:    }
+src\Mira\ETS\Movable.cpp:54:
+src\Mira\ETS\Movable.cpp:55:    AnyMovable::AnyMovable( AnyMovable&& other )
+noexcept :
+src\Mira\ETS\Movable.cpp:56:        m_VTablePtr( other.m_VTablePtr ) {
+src\Mira\ETS\Movable.cpp:57:        if ( m_VTablePtr&& m_VTablePtr
+src\Mira\ETS\Movable.cpp:58:        ->
+src\Mira\ETS\Movable.cpp:59:        MoveFn
+src\Mira\ETS\Movable.cpp:60:        )
+src\Mira\ETS\Movable.cpp:61:        {
+src\Mira\ETS\Movable.cpp:62:            if ( other.m_Ptr == &other.m_Buffer ) {
+src\Mira\ETS\Movable.cpp:63:                m_Ptr = &m_Buffer;
+src\Mira\ETS\Movable.cpp:64:                m_VTablePtr->MoveFn( other.m_Ptr,
+&m_Ptr );
+src\Mira\ETS\Movable.cpp:65:            } else {
+src\Mira\ETS\Movable.cpp:66:                m_Ptr = other.m_Ptr;
+src\Mira\ETS\Movable.cpp:67:                other.m_Ptr = &other.m_Buffer;
+src\Mira\ETS\Movable.cpp:68:            }
+src\Mira\ETS\Movable.cpp:69:            other.m_VTablePtr = nullptr;
+src\Mira\ETS\Movable.cpp:70:        }
+src\Mira\ETS\Movable.cpp:71:    }
+src\Mira\ETS\Movable.cpp:72:
+src\Mira\ETS\Movable.cpp:73:    AnyMovable&
+src\Mira\ETS\Movable.cpp:74:    AnyMovable::operator=( AnyMovable&& other )
+noexcept {
+src\Mira\ETS\Movable.cpp:75:        if ( this != &other ) {
+src\Mira\ETS\Movable.cpp:76:            if ( m_VTablePtr&& m_VTablePtr
+src\Mira\ETS\Movable.cpp:77:            ->
+src\Mira\ETS\Movable.cpp:78:            DestroyFn
+src\Mira\ETS\Movable.cpp:79:            )
+src\Mira\ETS\Movable.cpp:80:            {
+src\Mira\ETS\Movable.cpp:81:                m_VTablePtr->DestroyFn( m_Ptr );
+src\Mira\ETS\Movable.cpp:82:                if ( m_Ptr != &m_Buffer ) {
+src\Mira\ETS\Movable.cpp:83:                    ::operator delete( m_Ptr );
+src\Mira\ETS\Movable.cpp:84:                }
+src\Mira\ETS\Movable.cpp:85:            }
+src\Mira\ETS\Movable.cpp:86:            m_VTablePtr = other.m_VTablePtr;
+src\Mira\ETS\Movable.cpp:87:            if ( m_VTablePtr&& m_VTablePtr
+src\Mira\ETS\Movable.cpp:88:            ->
+src\Mira\ETS\Movable.cpp:89:            MoveFn
+src\Mira\ETS\Movable.cpp:90:            )
+src\Mira\ETS\Movable.cpp:91:            {
+src\Mira\ETS\Movable.cpp:92:                if ( other.m_Ptr ==
+&other.m_Buffer ) {
+src\Mira\ETS\Movable.cpp:93:                    m_Ptr = &m_Buffer;
+src\Mira\ETS\Movable.cpp:94:                    m_VTablePtr->MoveFn(
+other.m_Ptr, &m_Ptr );
+src\Mira\ETS\Movable.cpp:95:                } else {
+src\Mira\ETS\Movable.cpp:96:                    m_Ptr = other.m_Ptr;
+src\Mira\ETS\Movable.cpp:97:                    other.m_Ptr = &other.m_Buffer;
+src\Mira\ETS\Movable.cpp:98:                }
+src\Mira\ETS\Movable.cpp:99:                other.m_VTablePtr = nullptr;
+src\Mira\ETS\Movable.cpp:100:            }
+src\Mira\ETS\Movable.cpp:101:        }
+src\Mira\ETS\Movable.cpp:102:        return *this;
+src\Mira\ETS\Movable.cpp:103:    }
+src\Mira\ETS\Movable.cpp:104:
+src\Mira\ETS\Movable.cpp:105:    void
+src\Mira\ETS\Movable.cpp:106:    AnyMovable::Update( float dt ) {
+src\Mira\ETS\Movable.cpp:107:        if ( m_VTablePtr&& m_VTablePtr
+src\Mira\ETS\Movable.cpp:108:        ->
+src\Mira\ETS\Movable.cpp:109:        UpdateFn
+src\Mira\ETS\Movable.cpp:110:        )
+src\Mira\ETS\Movable.cpp:111:        {
+src\Mira\ETS\Movable.cpp:112:            m_VTablePtr->UpdateFn( m_Ptr, dt );
+src\Mira\ETS\Movable.cpp:113:        }
+src\Mira\ETS\Movable.cpp:114:    }
+src\Mira\ETS\Movable.cpp:115:
+src\Mira\ETS\Movable.cpp:116:    const void*
+src\Mira\ETS\Movable.cpp:117:    AnyMovable::GetVTable() const {
+src\Mira\ETS\Movable.cpp:118:        return m_VTablePtr;
+src\Mira\ETS\Movable.cpp:119:    }
+src\Mira\ETS\Movable.cpp:120:} // namespace Mira::ETS
+src\Mira\ETS\Prefab.cpp:1:#include <Mira/ETS/Prefab.hpp>
+src\Mira\ETS\Prefab.cpp:2:#include <stdexcept>
+src\Mira\ETS\Prefab.cpp:3:
+src\Mira\ETS\Prefab.cpp:4:namespace Mira::ETS {
+src\Mira\ETS\Prefab.cpp:5:    PrefabManager::PrefabManager(
+SerializationContext& context ) :
+src\Mira\ETS\Prefab.cpp:6:        m_Context( context ) {}
+src\Mira\ETS\Prefab.cpp:7:
+src\Mira\ETS\Prefab.cpp:8:    Result
+src\Mira\ETS\Prefab.cpp:9:    PrefabManager::LoadPrefabs( const std::string&
+json ) {
+src\Mira\ETS\Prefab.cpp:10:        auto parser = std::make_unique <
+simdjson::dom::parser >();
+src\Mira\ETS\Prefab.cpp:11:        simdjson::dom::element doc;
+src\Mira\ETS\Prefab.cpp:12:        auto error = parser->parse( json ).get( doc
+);
+src\Mira\ETS\Prefab.cpp:13:
+src\Mira\ETS\Prefab.cpp:14:        if ( error ) {
+src\Mira\ETS\Prefab.cpp:15:            Result res = Result::Error(
+ErrorCode::InvalidJson,
+src\Mira\ETS\Prefab.cpp:16:                                        "JSON parse
+error in LoadPrefabs: " + std::string(
+src\Mira\ETS\Prefab.cpp:17:
+simdjson::error_message( error ) ) );
+src\Mira\ETS\Prefab.cpp:18:            if ( m_Reporter ) m_Reporter->Report(
+res );
+src\Mira\ETS\Prefab.cpp:19:            return res;
+src\Mira\ETS\Prefab.cpp:20:        }
+src\Mira\ETS\Prefab.cpp:21:
+src\Mira\ETS\Prefab.cpp:22:        simdjson::dom::object obj;
+src\Mira\ETS\Prefab.cpp:23:        error = doc.get( obj );
+src\Mira\ETS\Prefab.cpp:24:        if ( error ) {
+src\Mira\ETS\Prefab.cpp:25:            Result res = Result::Error(
+ErrorCode::TypeMismatch, "Prefab JSON must be an object at the top level" );
+src\Mira\ETS\Prefab.cpp:26:            if ( m_Reporter ) m_Reporter->Report(
+res );
+src\Mira\ETS\Prefab.cpp:27:            return res;
+src\Mira\ETS\Prefab.cpp:28:        }
+src\Mira\ETS\Prefab.cpp:29:
+src\Mira\ETS\Prefab.cpp:30:        for ( auto field : obj ) {
+src\Mira\ETS\Prefab.cpp:31:            std::string name( field.key );
+src\Mira\ETS\Prefab.cpp:32:            simdjson::dom::object prefab_data;
+src\Mira\ETS\Prefab.cpp:33:            if ( field.value.get( prefab_data ) ==
+simdjson::SUCCESS ) {
+src\Mira\ETS\Prefab.cpp:34:                m_Prefabs[ name ] = prefab_data;
+src\Mira\ETS\Prefab.cpp:35:            } else {
+src\Mira\ETS\Prefab.cpp:36:                if ( m_Reporter )
+m_Reporter->Report(
+src\Mira\ETS\Prefab.cpp:37:                    Result::Error(
+ErrorCode::TypeMismatch, "Prefab '" + name + "' data must be an object" ) );
+src\Mira\ETS\Prefab.cpp:38:            }
+src\Mira\ETS\Prefab.cpp:39:        }
+src\Mira\ETS\Prefab.cpp:40:
+src\Mira\ETS\Prefab.cpp:41:        m_Parsers.push_back( std::move( parser ) );
+src\Mira\ETS\Prefab.cpp:42:        return Result::Ok();
+src\Mira\ETS\Prefab.cpp:43:    }
+src\Mira\ETS\Prefab.cpp:44:
+src\Mira\ETS\Prefab.cpp:45:    EntityID
+src\Mira\ETS\Prefab.cpp:46:    PrefabManager::Instantiate( const std::string&
+prefabName, World& world ) {
+src\Mira\ETS\Prefab.cpp:47:        auto it = m_Prefabs.find( prefabName );
+src\Mira\ETS\Prefab.cpp:48:        if ( it == m_Prefabs.end() ) {
+src\Mira\ETS\Prefab.cpp:49:            if ( m_Reporter ) m_Reporter->Report(
+src\Mira\ETS\Prefab.cpp:50:                Result::Error(
+ErrorCode::UnknownPrefab, "Unknown prefab: " + prefabName ) );
+src\Mira\ETS\Prefab.cpp:51:            return k_NullIndex;
+src\Mira\ETS\Prefab.cpp:52:        }
+src\Mira\ETS\Prefab.cpp:53:
+src\Mira\ETS\Prefab.cpp:54:        EntityID entity = world.CreateEntity();
+src\Mira\ETS\Prefab.cpp:55:        simdjson::dom::object components =
+it->second;
+src\Mira\ETS\Prefab.cpp:56:
+src\Mira\ETS\Prefab.cpp:57:        for ( auto field : components ) {
+src\Mira\ETS\Prefab.cpp:58:            std::string_view compName = field.key;
+src\Mira\ETS\Prefab.cpp:59:            m_Context.DeserializeComponent( entity,
+world, std::string( compName ), field.value );
+src\Mira\ETS\Prefab.cpp:60:        }
+src\Mira\ETS\Prefab.cpp:61:
+src\Mira\ETS\Prefab.cpp:62:        return entity;
+src\Mira\ETS\Prefab.cpp:63:    }
+src\Mira\ETS\Prefab.cpp:64:} // namespace Mira::ETS
+src\Mira\ETS\Serialization.cpp:1:#include <Mira/ETS/Serialization.hpp>
+src\Mira\ETS\Serialization.cpp:2:#include <iostream>
+src\Mira\ETS\Serialization.cpp:3:#include <sstream>
+src\Mira\ETS\Serialization.cpp:4:
+src\Mira\ETS\Serialization.cpp:5:namespace Mira::ETS {
+src\Mira\ETS\Serialization.cpp:6:    Result
+src\Mira\ETS\Serialization.cpp:7:    SerializationContext::Serialize( World&
+world, std::ostream& os ) {
+src\Mira\ETS\Serialization.cpp:8:        std::string buffer;
+src\Mira\ETS\Serialization.cpp:9:        buffer.reserve( 8192 );
+src\Mira\ETS\Serialization.cpp:10:        buffer.append( "{\"entities\":[" );
+src\Mira\ETS\Serialization.cpp:11:
+src\Mira\ETS\Serialization.cpp:12:        bool firstEntity = true;
+src\Mira\ETS\Serialization.cpp:13:        uint32_t entityCount = static_cast <
+uint32_t >( world.GetEntityCount() );
+src\Mira\ETS\Serialization.cpp:14:
+src\Mira\ETS\Serialization.cpp:15:        for ( uint32_t i = 0; i <
+entityCount; ++i ) {
+src\Mira\ETS\Serialization.cpp:16:            EntityID id = world.GetEntityAt(
+i );
+src\Mira\ETS\Serialization.cpp:17:            if ( world.IsAlive( id ) ) {
+src\Mira\ETS\Serialization.cpp:18:                if ( !firstEntity )
+buffer.append( "," );
+src\Mira\ETS\Serialization.cpp:19:                firstEntity = false;
+src\Mira\ETS\Serialization.cpp:20:
+src\Mira\ETS\Serialization.cpp:21:                buffer.append( "{\"id\":" );
+src\Mira\ETS\Serialization.cpp:22:                buffer.append(
+std::to_string( id ) );
+src\Mira\ETS\Serialization.cpp:23:                buffer.append(
+",\"components\":{" );
+src\Mira\ETS\Serialization.cpp:24:
+src\Mira\ETS\Serialization.cpp:25:                const auto& mask =
+world.GetEntityMask( id );
+src\Mira\ETS\Serialization.cpp:26:                bool firstComp = true;
+src\Mira\ETS\Serialization.cpp:27:
+src\Mira\ETS\Serialization.cpp:28:                for ( size_t cid = 0; cid <
+m_SerializersByID.size(); ++cid ) {
+src\Mira\ETS\Serialization.cpp:29:                    if ( cid < mask.Size()
+&& mask.Test( cid ) ) {
+src\Mira\ETS\Serialization.cpp:30:                        auto* serializer =
+m_SerializersByID[ cid ];
+src\Mira\ETS\Serialization.cpp:31:                        if ( serializer &&
+serializer->serialize ) {
+src\Mira\ETS\Serialization.cpp:32:                            if ( !firstComp
+) buffer.append( "," );
+src\Mira\ETS\Serialization.cpp:33:                            firstComp =
+false;
+src\Mira\ETS\Serialization.cpp:34:
+src\Mira\ETS\Serialization.cpp:35:                            buffer.append(
+"\"" );
+src\Mira\ETS\Serialization.cpp:36:                            buffer.append(
+serializer->name );
+src\Mira\ETS\Serialization.cpp:37:                            buffer.append(
+"\":" );
+src\Mira\ETS\Serialization.cpp:38:
+src\Mira\ETS\Serialization.cpp:39:                            os << buffer;
+src\Mira\ETS\Serialization.cpp:40:                            buffer.clear();
+src\Mira\ETS\Serialization.cpp:41:
+src\Mira\ETS\Serialization.cpp:42:
+serializer->serialize( id, world, os );
+src\Mira\ETS\Serialization.cpp:43:                        }
+src\Mira\ETS\Serialization.cpp:44:                    }
+src\Mira\ETS\Serialization.cpp:45:                }
+src\Mira\ETS\Serialization.cpp:46:                buffer.append( "}}" );
+src\Mira\ETS\Serialization.cpp:47:            }
+src\Mira\ETS\Serialization.cpp:48:
+src\Mira\ETS\Serialization.cpp:49:            if ( buffer.size() > 4096 ) {
+src\Mira\ETS\Serialization.cpp:50:                os << buffer;
+src\Mira\ETS\Serialization.cpp:51:                buffer.clear();
+src\Mira\ETS\Serialization.cpp:52:            }
+src\Mira\ETS\Serialization.cpp:53:        }
+src\Mira\ETS\Serialization.cpp:54:
+src\Mira\ETS\Serialization.cpp:55:        buffer.append( "]}" );
+src\Mira\ETS\Serialization.cpp:56:        os << buffer;
+src\Mira\ETS\Serialization.cpp:57:        return Result::Ok();
+src\Mira\ETS\Serialization.cpp:58:    }
+src\Mira\ETS\Serialization.cpp:59:
+src\Mira\ETS\Serialization.cpp:60:    Result
+src\Mira\ETS\Serialization.cpp:61:    SerializationContext::Deserialize(
+World& world, const std::string& json ) {
+src\Mira\ETS\Serialization.cpp:62:        simdjson::dom::parser parser;
+src\Mira\ETS\Serialization.cpp:63:        simdjson::dom::element doc;
+src\Mira\ETS\Serialization.cpp:64:        auto error = parser.parse( json
+).get( doc );
+src\Mira\ETS\Serialization.cpp:65:        if ( error ) {
+src\Mira\ETS\Serialization.cpp:66:            Result res = Result::Error(
+ErrorCode::InvalidJson,
+src\Mira\ETS\Serialization.cpp:67:
+"JSON parse error: " + std::string( simdjson::error_message( error ) ) );
+src\Mira\ETS\Serialization.cpp:68:            if ( m_Reporter )
+m_Reporter->Report( res );
+src\Mira\ETS\Serialization.cpp:69:            return res;
+src\Mira\ETS\Serialization.cpp:70:        }
+src\Mira\ETS\Serialization.cpp:71:
+src\Mira\ETS\Serialization.cpp:72:        simdjson::dom::array entities;
+src\Mira\ETS\Serialization.cpp:73:        error = doc[ "entities" ].get(
+entities );
+src\Mira\ETS\Serialization.cpp:74:        if ( error ) {
+src\Mira\ETS\Serialization.cpp:75:            Result res = Result::Error(
+ErrorCode::MissingField, "Missing 'entities' array in JSON" );
+src\Mira\ETS\Serialization.cpp:76:            if ( m_Reporter )
+m_Reporter->Report( res );
+src\Mira\ETS\Serialization.cpp:77:            return res;
+src\Mira\ETS\Serialization.cpp:78:        }
+src\Mira\ETS\Serialization.cpp:79:
+src\Mira\ETS\Serialization.cpp:80:        for ( auto entity_el : entities ) {
+src\Mira\ETS\Serialization.cpp:81:            uint64_t id_raw;
+src\Mira\ETS\Serialization.cpp:82:            if ( entity_el[ "id" ].get(
+id_raw ) ) {
+src\Mira\ETS\Serialization.cpp:83:                if ( m_Reporter )
+m_Reporter->Report( Result::Error( ErrorCode::MissingField, "Entity missing
+'id'" ) );
+src\Mira\ETS\Serialization.cpp:84:                continue;
+src\Mira\ETS\Serialization.cpp:85:            }
+src\Mira\ETS\Serialization.cpp:86:
+src\Mira\ETS\Serialization.cpp:87:            EntityID id = static_cast <
+EntityID >( id_raw );
+src\Mira\ETS\Serialization.cpp:88:            EntityID newId =
+world.CreateEntity( id );
+src\Mira\ETS\Serialization.cpp:89:
+src\Mira\ETS\Serialization.cpp:90:            simdjson::dom::object components;
+src\Mira\ETS\Serialization.cpp:91:            if ( entity_el[ "components"
+].get( components ) ) {
+src\Mira\ETS\Serialization.cpp:92:                if ( entity_el[ "components"
+].error() != simdjson::NO_SUCH_FIELD ) {
+src\Mira\ETS\Serialization.cpp:93:                    if ( m_Reporter )
+src\Mira\ETS\Serialization.cpp:94:                        m_Reporter->Report(
+src\Mira\ETS\Serialization.cpp:95:                            Result::Error(
+ErrorCode::TypeMismatch, "Entity 'components' must be an object" ) );
+src\Mira\ETS\Serialization.cpp:96:                }
+src\Mira\ETS\Serialization.cpp:97:                continue;
+src\Mira\ETS\Serialization.cpp:98:            }
+src\Mira\ETS\Serialization.cpp:99:
+src\Mira\ETS\Serialization.cpp:100:            for ( auto field : components )
+{
+src\Mira\ETS\Serialization.cpp:101:                std::string name( field.key
+);
+src\Mira\ETS\Serialization.cpp:102:                DeserializeComponent(
+newId, world, name, field.value );
+src\Mira\ETS\Serialization.cpp:103:            }
+src\Mira\ETS\Serialization.cpp:104:        }
+src\Mira\ETS\Serialization.cpp:105:        return Result::Ok();
+src\Mira\ETS\Serialization.cpp:106:    }
+src\Mira\ETS\Serialization.cpp:107:
+src\Mira\ETS\Serialization.cpp:108:    Result
+src\Mira\ETS\Serialization.cpp:109:
+SerializationContext::DeserializeComponent( EntityID id, World& world, const
+std::string& name,
+src\Mira\ETS\Serialization.cpp:110:
+    const simdjson::dom::element& el ) {
+src\Mira\ETS\Serialization.cpp:111:        auto it = m_SerializersByName.find(
+name );
+src\Mira\ETS\Serialization.cpp:112:        if ( it !=
+m_SerializersByName.end() ) {
+src\Mira\ETS\Serialization.cpp:113:            if ( !it->second.deserialize ) {
+src\Mira\ETS\Serialization.cpp:114:                Result res = Result::Error(
+ErrorCode::InternalError,
+src\Mira\ETS\Serialization.cpp:115:
+"Component registered but lacks JSON deserializer: " + name );
+src\Mira\ETS\Serialization.cpp:116:                if ( m_Reporter )
+m_Reporter->Report( res );
+src\Mira\ETS\Serialization.cpp:117:                return res;
+src\Mira\ETS\Serialization.cpp:118:            }
+src\Mira\ETS\Serialization.cpp:119:            try {
+src\Mira\ETS\Serialization.cpp:120:                it->second.deserialize( id,
+world, el );
+src\Mira\ETS\Serialization.cpp:121:                return Result::Ok();
+src\Mira\ETS\Serialization.cpp:122:            } catch ( const std::exception&
+e ) {
+src\Mira\ETS\Serialization.cpp:123:                Result res = Result::Error(
+ErrorCode::InternalError,
+src\Mira\ETS\Serialization.cpp:124:
+"Exception during deserialization of " + name + ": " + e.what() );
+src\Mira\ETS\Serialization.cpp:125:                if ( m_Reporter )
+m_Reporter->Report( res );
+src\Mira\ETS\Serialization.cpp:126:                return res;
+src\Mira\ETS\Serialization.cpp:127:            }
+src\Mira\ETS\Serialization.cpp:128:        } else {
+src\Mira\ETS\Serialization.cpp:129:            Result res = Result::Error(
+ErrorCode::ComponentNotRegistered, "Component not registered: " + name );
+src\Mira\ETS\Serialization.cpp:130:            if ( m_Reporter )
+m_Reporter->Report( res );
+src\Mira\ETS\Serialization.cpp:131:            return res;
+src\Mira\ETS\Serialization.cpp:132:        }
+src\Mira\ETS\Serialization.cpp:133:    }
+src\Mira\ETS\Serialization.cpp:134:
+src\Mira\ETS\Serialization.cpp:135:    Result
+src\Mira\ETS\Serialization.cpp:136:    SerializationContext::SerializeBinary(
+World& world, std::ostream& os ) {
+src\Mira\ETS\Serialization.cpp:137:        uint32_t entityCount = 0;
+src\Mira\ETS\Serialization.cpp:138:        uint32_t totalEntities =
+static_cast < uint32_t >( world.GetEntityCount() );
+src\Mira\ETS\Serialization.cpp:139:        for ( uint32_t i = 0; i <
+totalEntities; ++i ) {
+src\Mira\ETS\Serialization.cpp:140:            if ( world.IsAlive(
+world.GetEntityAt( i ) ) ) entityCount++;
+src\Mira\ETS\Serialization.cpp:141:        }
+src\Mira\ETS\Serialization.cpp:142:
+src\Mira\ETS\Serialization.cpp:143:        os.write( reinterpret_cast < const
+char* >( &entityCount ), sizeof( entityCount ) );
+src\Mira\ETS\Serialization.cpp:144:
+src\Mira\ETS\Serialization.cpp:145:        for ( uint32_t i = 0; i <
+totalEntities; ++i ) {
+src\Mira\ETS\Serialization.cpp:146:            EntityID id =
+world.GetEntityAt( i );
+src\Mira\ETS\Serialization.cpp:147:            if ( world.IsAlive( id ) ) {
+src\Mira\ETS\Serialization.cpp:148:                os.write( reinterpret_cast
+< const char* >( &id ), sizeof( id ) );
+src\Mira\ETS\Serialization.cpp:149:
+src\Mira\ETS\Serialization.cpp:150:                const auto& mask =
+world.GetEntityMask( id );
+src\Mira\ETS\Serialization.cpp:151:                uint32_t componentCount = 0;
+src\Mira\ETS\Serialization.cpp:152:                for ( size_t cid = 0; cid <
+m_SerializersByID.size(); ++cid ) {
+src\Mira\ETS\Serialization.cpp:153:                    if ( cid < mask.Size()
+&& mask.Test( cid ) ) {
+src\Mira\ETS\Serialization.cpp:154:                        auto* serializer =
+m_SerializersByID[ cid ];
+src\Mira\ETS\Serialization.cpp:155:                        if ( serializer &&
+serializer->binarySerialize ) {
+src\Mira\ETS\Serialization.cpp:156:
+componentCount++;
+src\Mira\ETS\Serialization.cpp:157:                        }
+src\Mira\ETS\Serialization.cpp:158:                    }
+src\Mira\ETS\Serialization.cpp:159:                }
+src\Mira\ETS\Serialization.cpp:160:
+src\Mira\ETS\Serialization.cpp:161:                os.write( reinterpret_cast
+< const char* >( &componentCount ), sizeof( componentCount ) );
+src\Mira\ETS\Serialization.cpp:162:
+src\Mira\ETS\Serialization.cpp:163:                for ( size_t cid = 0; cid <
+m_SerializersByID.size(); ++cid ) {
+src\Mira\ETS\Serialization.cpp:164:                    if ( cid < mask.Size()
+&& mask.Test( cid ) ) {
+src\Mira\ETS\Serialization.cpp:165:                        auto* serializer =
+m_SerializersByID[ cid ];
+src\Mira\ETS\Serialization.cpp:166:                        if ( serializer &&
+serializer->binarySerialize ) {
+src\Mira\ETS\Serialization.cpp:167:                            uint32_t
+nameLen = static_cast < uint32_t >( serializer->name.size() );
+src\Mira\ETS\Serialization.cpp:168:                            os.write(
+reinterpret_cast < const char* >( &nameLen ), sizeof( nameLen ) );
+src\Mira\ETS\Serialization.cpp:169:                            os.write(
+serializer->name.data(), nameLen );
+src\Mira\ETS\Serialization.cpp:170:
+src\Mira\ETS\Serialization.cpp:171:
+serializer->binarySerialize( id, world, os );
+src\Mira\ETS\Serialization.cpp:172:                        }
+src\Mira\ETS\Serialization.cpp:173:                    }
+src\Mira\ETS\Serialization.cpp:174:                }
+src\Mira\ETS\Serialization.cpp:175:            }
+src\Mira\ETS\Serialization.cpp:176:        }
+src\Mira\ETS\Serialization.cpp:177:        return Result::Ok();
+src\Mira\ETS\Serialization.cpp:178:    }
+src\Mira\ETS\Serialization.cpp:179:
+src\Mira\ETS\Serialization.cpp:180:    Result
+src\Mira\ETS\Serialization.cpp:181:
+SerializationContext::DeserializeBinary( World& world, std::istream& is ) {
+src\Mira\ETS\Serialization.cpp:182:        uint32_t entityCount;
+src\Mira\ETS\Serialization.cpp:183:        if ( !is.read( reinterpret_cast <
+char* >( &entityCount ), sizeof( entityCount ) ) ) {
+src\Mira\ETS\Serialization.cpp:184:            return Result::Ok(); // Empty
+or failed to read
+src\Mira\ETS\Serialization.cpp:185:        }
+src\Mira\ETS\Serialization.cpp:186:
+src\Mira\ETS\Serialization.cpp:187:        for ( uint32_t i = 0; i <
+entityCount; ++i ) {
+src\Mira\ETS\Serialization.cpp:188:            EntityID id;
+src\Mira\ETS\Serialization.cpp:189:            if ( !is.read( reinterpret_cast
+< char* >( &id ), sizeof( id ) ) ) break;
+src\Mira\ETS\Serialization.cpp:190:
+src\Mira\ETS\Serialization.cpp:191:            EntityID newId =
+world.CreateEntity( id );
+src\Mira\ETS\Serialization.cpp:192:
+src\Mira\ETS\Serialization.cpp:193:            uint32_t componentCount;
+src\Mira\ETS\Serialization.cpp:194:            if ( !is.read( reinterpret_cast
+< char* >( &componentCount ), sizeof( componentCount ) ) ) break;
+src\Mira\ETS\Serialization.cpp:195:
+src\Mira\ETS\Serialization.cpp:196:            for ( uint32_t j = 0; j <
+componentCount; ++j ) {
+src\Mira\ETS\Serialization.cpp:197:                uint32_t nameLen;
+src\Mira\ETS\Serialization.cpp:198:                if ( !is.read(
+reinterpret_cast < char* >( &nameLen ), sizeof( nameLen ) ) ) break;
+src\Mira\ETS\Serialization.cpp:199:
+src\Mira\ETS\Serialization.cpp:200:                std::string name( nameLen,
+'\0' );
+src\Mira\ETS\Serialization.cpp:201:                if ( !is.read( &name[ 0 ],
+nameLen ) ) break;
+src\Mira\ETS\Serialization.cpp:202:
+src\Mira\ETS\Serialization.cpp:203:                auto it =
+m_SerializersByName.find( name );
+src\Mira\ETS\Serialization.cpp:204:                if ( it !=
+m_SerializersByName.end() && it->second.binaryDeserialize ) {
+src\Mira\ETS\Serialization.cpp:205:
+it->second.binaryDeserialize( newId, world, is );
+src\Mira\ETS\Serialization.cpp:206:                } else {
+src\Mira\ETS\Serialization.cpp:207:                    Result res =
+Result::Error( ErrorCode::ComponentNotRegistered,
+src\Mira\ETS\Serialization.cpp:208:
+    "Component not registered or lacks binary deserializer: " + name );
+src\Mira\ETS\Serialization.cpp:209:                    if ( m_Reporter )
+m_Reporter->Report( res );
+src\Mira\ETS\Serialization.cpp:210:                    return res;
+src\Mira\ETS\Serialization.cpp:211:                }
+src\Mira\ETS\Serialization.cpp:212:            }
+src\Mira\ETS\Serialization.cpp:213:        }
+src\Mira\ETS\Serialization.cpp:214:        return Result::Ok();
+src\Mira\ETS\Serialization.cpp:215:    }
+src\Mira\ETS\Serialization.cpp:216:} // namespace Mira::ETS
+src\Mira\ETS\SystemScheduler.cpp:1:#include "Mira/ETS/SystemScheduler.hpp"
+src\Mira\ETS\SystemScheduler.cpp:2:#include <queue>
+src\Mira\ETS\SystemScheduler.cpp:3:#include <atomic>
+src\Mira\ETS\SystemScheduler.cpp:4:#include <latch>
+src\Mira\ETS\SystemScheduler.cpp:5:
+src\Mira\ETS\SystemScheduler.cpp:6:namespace Mira::ETS {
+src\Mira\ETS\SystemScheduler.cpp:7:    void
+src\Mira\ETS\SystemScheduler.cpp:8:    RunPhysicsParallel( std::vector < Vec2
+>& positions, const std::vector < Vec2 >& velocities, float dt ) {
+src\Mira\ETS\SystemScheduler.cpp:9:        auto indices = std::views::iota(
+0u, ( uint32_t ) positions.size() );
+src\Mira\ETS\SystemScheduler.cpp:10:
+src\Mira\ETS\SystemScheduler.cpp:11:        std::for_each(
+std::execution::par_unseq,
+src\Mira\ETS\SystemScheduler.cpp:12:                       indices.begin(),
+indices.end(),
+src\Mira\ETS\SystemScheduler.cpp:13:                       [&]( size_t i ) {
+src\Mira\ETS\SystemScheduler.cpp:14:                           positions[ i
+].X += velocities[ i ].X * dt;
+src\Mira\ETS\SystemScheduler.cpp:15:                           positions[ i
+].Y += velocities[ i ].Y * dt;
+src\Mira\ETS\SystemScheduler.cpp:16:                       } );
+src\Mira\ETS\SystemScheduler.cpp:17:    }
+src\Mira\ETS\SystemScheduler.cpp:18:
+src\Mira\ETS\SystemScheduler.cpp:19:    void
+src\Mira\ETS\SystemScheduler.cpp:20:    RunPhysicsSequential( std::vector <
+Vec2 >& positions, const std::vector < Vec2 >& velocities, float dt ) {
+src\Mira\ETS\SystemScheduler.cpp:21:        auto indices = std::views::iota(
+0u, ( uint32_t ) positions.size() );
+src\Mira\ETS\SystemScheduler.cpp:22:
+src\Mira\ETS\SystemScheduler.cpp:23:        std::for_each( std::execution::seq,
+src\Mira\ETS\SystemScheduler.cpp:24:                       indices.begin(),
+indices.end(),
+src\Mira\ETS\SystemScheduler.cpp:25:                       [&]( size_t i ) {
+src\Mira\ETS\SystemScheduler.cpp:26:                           positions[ i
+].X += velocities[ i ].X * dt;
+src\Mira\ETS\SystemScheduler.cpp:27:                           positions[ i
+].Y += velocities[ i ].Y * dt;
+src\Mira\ETS\SystemScheduler.cpp:28:                       } );
+src\Mira\ETS\SystemScheduler.cpp:29:    }
+src\Mira\ETS\SystemScheduler.cpp:30:
+src\Mira\ETS\SystemScheduler.cpp:31:    SystemScheduler::SystemScheduler() {
+src\Mira\ETS\SystemScheduler.cpp:32:        m_Pool = std::make_unique <
+ThreadPool >( std::thread::hardware_concurrency() );
+src\Mira\ETS\SystemScheduler.cpp:33:    }
+src\Mira\ETS\SystemScheduler.cpp:34:
+src\Mira\ETS\SystemScheduler.cpp:35:    void
+src\Mira\ETS\SystemScheduler.cpp:36:    SystemScheduler::AddSystem(
+std::function < void() > system ) {
+src\Mira\ETS\SystemScheduler.cpp:37:        m_Systems.push_back( std::move(
+system ) );
+src\Mira\ETS\SystemScheduler.cpp:38:    }
+src\Mira\ETS\SystemScheduler.cpp:39:
+src\Mira\ETS\SystemScheduler.cpp:40:    void
+src\Mira\ETS\SystemScheduler.cpp:41:    SystemScheduler::AddSystem(
+std::string name, std::function < void() > system,
+src\Mira\ETS\SystemScheduler.cpp:42:
+std::vector < std::string > dependencies ) {
+src\Mira\ETS\SystemScheduler.cpp:43:        SystemNode node;
+src\Mira\ETS\SystemScheduler.cpp:44:        node.Name = name;
+src\Mira\ETS\SystemScheduler.cpp:45:        node.Func = std::move( system );
+src\Mira\ETS\SystemScheduler.cpp:46:        node.Dependencies = std::move(
+dependencies );
+src\Mira\ETS\SystemScheduler.cpp:47:
+src\Mira\ETS\SystemScheduler.cpp:48:        m_Graph[ name ] = std::move( node
+);
+src\Mira\ETS\SystemScheduler.cpp:49:        m_GraphDirty = true;
+src\Mira\ETS\SystemScheduler.cpp:50:
+src\Mira\ETS\SystemScheduler.cpp:51:        // Update dependents
+src\Mira\ETS\SystemScheduler.cpp:52:        for ( const auto& dep : m_Graph[
+name ].Dependencies ) {
+src\Mira\ETS\SystemScheduler.cpp:53:            if ( m_Graph.count( dep ) ) {
+src\Mira\ETS\SystemScheduler.cpp:54:                m_Graph[ dep
+].Dependents.push_back( name );
+src\Mira\ETS\SystemScheduler.cpp:55:            }
+src\Mira\ETS\SystemScheduler.cpp:56:        }
+src\Mira\ETS\SystemScheduler.cpp:57:
+src\Mira\ETS\SystemScheduler.cpp:58:        // Check if any existing nodes
+depend on this new node
+src\Mira\ETS\SystemScheduler.cpp:59:        for ( auto& [ otherName, otherNode
+] : m_Graph ) {
+src\Mira\ETS\SystemScheduler.cpp:60:            if ( otherName == name )
+continue;
+src\Mira\ETS\SystemScheduler.cpp:61:            for ( const auto& dep :
+otherNode.Dependencies ) {
+src\Mira\ETS\SystemScheduler.cpp:62:                if ( dep == name ) {
+src\Mira\ETS\SystemScheduler.cpp:63:                    m_Graph[ name
+].Dependents.push_back( otherName );
+src\Mira\ETS\SystemScheduler.cpp:64:                }
+src\Mira\ETS\SystemScheduler.cpp:65:            }
+src\Mira\ETS\SystemScheduler.cpp:66:        }
+src\Mira\ETS\SystemScheduler.cpp:67:    }
+src\Mira\ETS\SystemScheduler.cpp:68:
+src\Mira\ETS\SystemScheduler.cpp:69:    void
+src\Mira\ETS\SystemScheduler.cpp:70:    SystemScheduler::RunSequential() {
+src\Mira\ETS\SystemScheduler.cpp:71:        for ( auto& system : m_Systems ) {
+src\Mira\ETS\SystemScheduler.cpp:72:            system();
+src\Mira\ETS\SystemScheduler.cpp:73:        }
+src\Mira\ETS\SystemScheduler.cpp:74:    }
+src\Mira\ETS\SystemScheduler.cpp:75:
+src\Mira\ETS\SystemScheduler.cpp:76:    void
+src\Mira\ETS\SystemScheduler.cpp:77:    SystemScheduler::RunParallel() {
+src\Mira\ETS\SystemScheduler.cpp:78:        if ( m_Systems.empty() ) return;
+src\Mira\ETS\SystemScheduler.cpp:79:
+src\Mira\ETS\SystemScheduler.cpp:80:        std::latch latch( m_Systems.size()
+);
+src\Mira\ETS\SystemScheduler.cpp:81:        for ( auto& system : m_Systems ) {
+src\Mira\ETS\SystemScheduler.cpp:82:            m_Pool->Submit( [ & ] {
+src\Mira\ETS\SystemScheduler.cpp:83:                system();
+src\Mira\ETS\SystemScheduler.cpp:84:                latch.count_down();
+src\Mira\ETS\SystemScheduler.cpp:85:            } );
+src\Mira\ETS\SystemScheduler.cpp:86:        }
+src\Mira\ETS\SystemScheduler.cpp:87:        latch.wait();
+src\Mira\ETS\SystemScheduler.cpp:88:    }
+src\Mira\ETS\SystemScheduler.cpp:89:
+src\Mira\ETS\SystemScheduler.cpp:90:    void
+src\Mira\ETS\SystemScheduler.cpp:91:    SystemScheduler::RunGraph() {
+src\Mira\ETS\SystemScheduler.cpp:92:        if ( m_Graph.empty() ) return;
+src\Mira\ETS\SystemScheduler.cpp:93:
+src\Mira\ETS\SystemScheduler.cpp:94:        if ( m_GraphDirty ) {
+src\Mira\ETS\SystemScheduler.cpp:95:            RebuildGraph();
+src\Mira\ETS\SystemScheduler.cpp:96:        }
+src\Mira\ETS\SystemScheduler.cpp:97:
+src\Mira\ETS\SystemScheduler.cpp:98:        // 2. Execute batches
+src\Mira\ETS\SystemScheduler.cpp:99:        for ( const auto& batch :
+m_BatchedGraph ) {
+src\Mira\ETS\SystemScheduler.cpp:100:            if ( batch.size() == 1 ) {
+src\Mira\ETS\SystemScheduler.cpp:101:                m_Graph[ batch[ 0 ]
+].Func();
+src\Mira\ETS\SystemScheduler.cpp:102:            } else {
+src\Mira\ETS\SystemScheduler.cpp:103:                std::latch latch(
+batch.size() );
+src\Mira\ETS\SystemScheduler.cpp:104:                for ( const auto& name :
+batch ) {
+src\Mira\ETS\SystemScheduler.cpp:105:                    m_Pool->Submit( [
+&latch, &func = m_Graph[ name ].Func ] {
+src\Mira\ETS\SystemScheduler.cpp:106:                        func();
+src\Mira\ETS\SystemScheduler.cpp:107:
+latch.count_down();
+src\Mira\ETS\SystemScheduler.cpp:108:                    } );
+src\Mira\ETS\SystemScheduler.cpp:109:                }
+src\Mira\ETS\SystemScheduler.cpp:110:                latch.wait();
+src\Mira\ETS\SystemScheduler.cpp:111:            }
+src\Mira\ETS\SystemScheduler.cpp:112:        }
+src\Mira\ETS\SystemScheduler.cpp:113:    }
+src\Mira\ETS\SystemScheduler.cpp:114:
+src\Mira\ETS\SystemScheduler.cpp:115:    void
+src\Mira\ETS\SystemScheduler.cpp:116:    SystemScheduler::RebuildGraph() {
+src\Mira\ETS\SystemScheduler.cpp:117:        m_BatchedGraph.clear();
+src\Mira\ETS\SystemScheduler.cpp:118:        std::unordered_map < std::string,
+int > inDegree;
+src\Mira\ETS\SystemScheduler.cpp:119:        std::vector < std::string >
+currentBatch;
+src\Mira\ETS\SystemScheduler.cpp:120:
+src\Mira\ETS\SystemScheduler.cpp:121:        for ( const auto& [ name, node ]
+: m_Graph ) {
+src\Mira\ETS\SystemScheduler.cpp:122:            inDegree[ name ] = ( int )
+node.Dependencies.size();
+src\Mira\ETS\SystemScheduler.cpp:123:            if ( inDegree[ name ] == 0 ) {
+src\Mira\ETS\SystemScheduler.cpp:124:                currentBatch.push_back(
+name );
+src\Mira\ETS\SystemScheduler.cpp:125:            }
+src\Mira\ETS\SystemScheduler.cpp:126:        }
+src\Mira\ETS\SystemScheduler.cpp:127:
+src\Mira\ETS\SystemScheduler.cpp:128:        while ( !currentBatch.empty() ) {
+src\Mira\ETS\SystemScheduler.cpp:129:            m_BatchedGraph.push_back(
+currentBatch );
+src\Mira\ETS\SystemScheduler.cpp:130:            std::vector < std::string >
+nextBatch;
+src\Mira\ETS\SystemScheduler.cpp:131:            for ( const auto& name :
+currentBatch ) {
+src\Mira\ETS\SystemScheduler.cpp:132:                for ( const auto&
+dependent : m_Graph[ name ].Dependents ) {
+src\Mira\ETS\SystemScheduler.cpp:133:                    if ( --inDegree[
+dependent ] == 0 ) {
+src\Mira\ETS\SystemScheduler.cpp:134:
+nextBatch.push_back( dependent );
+src\Mira\ETS\SystemScheduler.cpp:135:                    }
+src\Mira\ETS\SystemScheduler.cpp:136:                }
+src\Mira\ETS\SystemScheduler.cpp:137:            }
+src\Mira\ETS\SystemScheduler.cpp:138:            currentBatch = std::move(
+nextBatch );
+src\Mira\ETS\SystemScheduler.cpp:139:        }
+src\Mira\ETS\SystemScheduler.cpp:140:
+src\Mira\ETS\SystemScheduler.cpp:141:        // Check for cycles
+src\Mira\ETS\SystemScheduler.cpp:142:        size_t totalNodes = 0;
+src\Mira\ETS\SystemScheduler.cpp:143:        for ( const auto& batch :
+m_BatchedGraph ) {
+src\Mira\ETS\SystemScheduler.cpp:144:            totalNodes += batch.size();
+src\Mira\ETS\SystemScheduler.cpp:145:        }
+src\Mira\ETS\SystemScheduler.cpp:146:
+src\Mira\ETS\SystemScheduler.cpp:147:        if ( totalNodes < m_Graph.size()
+) {
+src\Mira\ETS\SystemScheduler.cpp:148:            throw std::runtime_error(
+"SystemScheduler: Dependency cycle detected or missing dependencies." );
+src\Mira\ETS\SystemScheduler.cpp:149:        }
+src\Mira\ETS\SystemScheduler.cpp:150:
+src\Mira\ETS\SystemScheduler.cpp:151:        m_GraphDirty = false;
+src\Mira\ETS\SystemScheduler.cpp:152:    }
+src\Mira\ETS\SystemScheduler.cpp:153:} // namespace Mira::ETS
+src\Mira\ETS\World.cpp:1:#include "Mira/ETS/World.hpp"
+src\Mira\ETS\World.cpp:2:#include <algorithm>
+src\Mira\ETS\World.cpp:3:
+src\Mira\ETS\World.cpp:4:namespace Mira::ETS {
+src\Mira\ETS\World.cpp:5:    namespace Internal {
+src\Mira\ETS\World.cpp:6:        size_t
+src\Mira\ETS\World.cpp:7:        GetNextComponentID() {
+src\Mira\ETS\World.cpp:8:            static size_t s_NextID = 0;
+src\Mira\ETS\World.cpp:9:            return s_NextID++;
+src\Mira\ETS\World.cpp:10:        }
+src\Mira\ETS\World.cpp:11:    }
+src\Mira\ETS\World.cpp:12:
+src\Mira\ETS\World.cpp:13:    EntityID
+src\Mira\ETS\World.cpp:14:    World::CreateEntity() {
+src\Mira\ETS\World.cpp:15:        if ( !m_FreeEntities.empty() ) {
+src\Mira\ETS\World.cpp:16:            EntityID id = m_FreeEntities.back();
+src\Mira\ETS\World.cpp:17:            m_FreeEntities.pop_back();
+src\Mira\ETS\World.cpp:18:
+src\Mira\ETS\World.cpp:19:            uint32_t index = Internal::GetIndex( id
+);
+src\Mira\ETS\World.cpp:20:            uint32_t generation =
+m_EntityGenerations[ index ];
+src\Mira\ETS\World.cpp:21:
+src\Mira\ETS\World.cpp:22:            return ( static_cast < EntityID >(
+generation ) << 32 ) | index;
+src\Mira\ETS\World.cpp:23:        }
+src\Mira\ETS\World.cpp:24:
+src\Mira\ETS\World.cpp:25:        uint32_t index = static_cast < uint32_t >(
+m_EntitySignatures.size() );
+src\Mira\ETS\World.cpp:26:        m_EntitySignatures.emplace_back( 0 );
+src\Mira\ETS\World.cpp:27:        m_EntityGenerations.push_back( 0 );
+src\Mira\ETS\World.cpp:28:        return static_cast < EntityID >( index ); //
+Generation 0
+src\Mira\ETS\World.cpp:29:    }
+src\Mira\ETS\World.cpp:30:
+src\Mira\ETS\World.cpp:31:    std::vector < EntityID >
+src\Mira\ETS\World.cpp:32:    World::CreateEntitiesBulk( size_t count ) {
+src\Mira\ETS\World.cpp:33:        std::vector < EntityID > entities;
+src\Mira\ETS\World.cpp:34:        entities.reserve( count );
+src\Mira\ETS\World.cpp:35:
+src\Mira\ETS\World.cpp:36:        while ( count > 0 && !m_FreeEntities.empty()
+) {
+src\Mira\ETS\World.cpp:37:            entities.push_back( CreateEntity() );
+src\Mira\ETS\World.cpp:38:            count--;
+src\Mira\ETS\World.cpp:39:        }
+src\Mira\ETS\World.cpp:40:
+src\Mira\ETS\World.cpp:41:        if ( count > 0 ) {
+src\Mira\ETS\World.cpp:42:            uint32_t startIndex = static_cast <
+uint32_t >( m_EntitySignatures.size() );
+src\Mira\ETS\World.cpp:43:            m_EntitySignatures.resize( startIndex +
+count, ComponentMask( 0 ) );
+src\Mira\ETS\World.cpp:44:            m_EntityGenerations.resize( startIndex +
+count, 0 );
+src\Mira\ETS\World.cpp:45:
+src\Mira\ETS\World.cpp:46:            for ( uint32_t i = 0; i < count; ++i ) {
+src\Mira\ETS\World.cpp:47:                entities.push_back( static_cast <
+EntityID >( startIndex + i ) );
+src\Mira\ETS\World.cpp:48:            }
+src\Mira\ETS\World.cpp:49:        }
+src\Mira\ETS\World.cpp:50:
+src\Mira\ETS\World.cpp:51:        return entities;
+src\Mira\ETS\World.cpp:52:    }
+src\Mira\ETS\World.cpp:53:
+src\Mira\ETS\World.cpp:54:    EntityID
+src\Mira\ETS\World.cpp:55:    World::CreateEntity( EntityID id ) {
+src\Mira\ETS\World.cpp:56:        uint32_t index = Internal::GetIndex( id );
+src\Mira\ETS\World.cpp:57:        uint32_t generation =
+Internal::GetGeneration( id );
+src\Mira\ETS\World.cpp:58:
+src\Mira\ETS\World.cpp:59:        if ( index >= m_EntitySignatures.size() ) {
+src\Mira\ETS\World.cpp:60:            m_EntitySignatures.resize( index + 1 );
+src\Mira\ETS\World.cpp:61:            m_EntityGenerations.resize( index + 1 );
+src\Mira\ETS\World.cpp:62:        }
+src\Mira\ETS\World.cpp:63:
+src\Mira\ETS\World.cpp:64:        if ( IsAlive( id ) ) {
+src\Mira\ETS\World.cpp:65:            return id;
+src\Mira\ETS\World.cpp:66:        }
+src\Mira\ETS\World.cpp:67:
+src\Mira\ETS\World.cpp:68:        // If it was in free list, remove it
+src\Mira\ETS\World.cpp:69:        m_FreeEntities.erase(
+src\Mira\ETS\World.cpp:70:            std::remove_if( m_FreeEntities.begin(),
+m_FreeEntities.end(),
+src\Mira\ETS\World.cpp:71:                            [index]( EntityID eid ) {
+src\Mira\ETS\World.cpp:72:                                return
+Internal::GetIndex( eid ) == index;
+src\Mira\ETS\World.cpp:73:                            } ),
+src\Mira\ETS\World.cpp:74:            m_FreeEntities.end() );
+src\Mira\ETS\World.cpp:75:
+src\Mira\ETS\World.cpp:76:        m_EntityGenerations[ index ] = generation;
+src\Mira\ETS\World.cpp:77:        m_EntitySignatures[ index ].Reset();
+src\Mira\ETS\World.cpp:78:
+src\Mira\ETS\World.cpp:79:        return id;
+src\Mira\ETS\World.cpp:80:    }
+src\Mira\ETS\World.cpp:81:
+src\Mira\ETS\World.cpp:82:    void
+src\Mira\ETS\World.cpp:83:    World::DestroyEntity( EntityID id ) {
+src\Mira\ETS\World.cpp:84:        uint32_t index = Internal::GetIndex( id );
+src\Mira\ETS\World.cpp:85:        uint32_t generation =
+Internal::GetGeneration( id );
+src\Mira\ETS\World.cpp:86:
+src\Mira\ETS\World.cpp:87:        if ( IsAlive( id ) ) {
+src\Mira\ETS\World.cpp:88:            m_EntitySignatures[ index
+].ForEachSetBit( [&]( size_t i ) {
+src\Mira\ETS\World.cpp:89:                if ( i < m_OnRemovedTriggers.size()
+&& m_OnRemovedTriggers[ i ] ) {
+src\Mira\ETS\World.cpp:90:                    m_OnRemovedTriggers[ i ]( id );
+src\Mira\ETS\World.cpp:91:                }
+src\Mira\ETS\World.cpp:92:                if ( i < m_StoresByID.size() &&
+m_StoresByID[ i ] ) {
+src\Mira\ETS\World.cpp:93:                    m_StoresByID[ i ]->Remove( id );
+src\Mira\ETS\World.cpp:94:                }
+src\Mira\ETS\World.cpp:95:            } );
+src\Mira\ETS\World.cpp:96:            m_EntitySignatures[ index ].Reset();
+src\Mira\ETS\World.cpp:97:            m_EntityGenerations[ index ]++;
+src\Mira\ETS\World.cpp:98:            m_FreeEntities.push_back( ( static_cast
+< EntityID >( m_EntityGenerations[ index ] ) << 32 ) | index );
+src\Mira\ETS\World.cpp:99:        }
+src\Mira\ETS\World.cpp:100:    }
+src\Mira\ETS\World.cpp:101:
+src\Mira\ETS\World.cpp:102:    bool
+src\Mira\ETS\World.cpp:103:    World::IsAlive( EntityID id ) const noexcept {
+src\Mira\ETS\World.cpp:104:        uint32_t index = Internal::GetIndex( id );
+src\Mira\ETS\World.cpp:105:        uint32_t generation =
+Internal::GetGeneration( id );
+src\Mira\ETS\World.cpp:106:        return index < m_EntitySignatures.size() &&
+m_EntityGenerations[ index ] == generation;
+src\Mira\ETS\World.cpp:107:    }
+src\Mira\ETS\World.cpp:108:} // namespace Mira::ETS

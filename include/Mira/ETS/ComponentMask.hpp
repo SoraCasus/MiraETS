@@ -1,5 +1,4 @@
-#ifndef MIRA_ETS_COMPONENT_MASK_HPP
-#define MIRA_ETS_COMPONENT_MASK_HPP
+#pragma once
 
 #include <cstdint>
 #include <array>
@@ -175,5 +174,3 @@ namespace Mira::ETS {
         std::array < uint64_t, 4 > m_Words;
     };
 } // namespace Mira::ETS
-
-#endif // MIRA_ETS_COMPONENT_MASK_HPP

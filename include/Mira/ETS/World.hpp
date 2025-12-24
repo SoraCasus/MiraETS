@@ -1,7 +1,3 @@
-//
-// Copyright (c) 2025 Mirror Domain Studios. All rights reserved.
-//
-
 /**
  * @file World.hpp
  * @brief Main ECS World class and component management.
@@ -9,17 +5,17 @@
 
 #pragma once
 
-#include <Mira/ETS/SparseSet.hpp>
-#include <Mira/ETS/Observer.hpp>
-#include <Mira/ETS/ComponentMask.hpp>
-#include <vector>
+#include <any>
+#include <functional>
 #include <memory>
+#include <tuple>
 #include <typeindex>
 #include <unordered_map>
-#include <any>
 #include <utility>
-#include <functional>
-#include <tuple>
+#include <vector>
+#include <Mira/ETS/ComponentMask.hpp>
+#include <Mira/ETS/Observer.hpp>
+#include <Mira/ETS/SparseSet.hpp>
 
 namespace Mira::ETS {
     namespace Internal {
@@ -54,7 +50,7 @@ namespace Mira::ETS {
          * @param count The number of entities to create.
          * @return std::vector<EntityID> A vector containing the IDs of the newly created entities.
          */
-        std::vector < EntityID >
+        std::vector< EntityID >
         CreateEntitiesBulk( size_t count );
 
         /**
@@ -85,17 +81,17 @@ namespace Mira::ETS {
         template< typename T, typename Func >
         void
         OnEvent( ComponentEvent event, Func&& callback ) {
-            EnsureSignalStorage < T >();
-            auto& signals = GetSignals < T >();
+            EnsureSignalStorage< T >();
+            auto& signals = GetSignals< T >();
             switch ( event ) {
                 case ComponentEvent::Added:
-                    signals.onAdded.push_back( std::forward < Func >( callback ) );
+                    signals.onAdded.push_back( std::forward< Func >( callback ) );
                     break;
                 case ComponentEvent::Removed:
-                    signals.onRemoved.push_back( std::forward < Func >( callback ) );
+                    signals.onRemoved.push_back( std::forward< Func >( callback ) );
                     break;
                 case ComponentEvent::Modified:
-                    signals.onModified.push_back( std::forward < Func >( callback ) );
+                    signals.onModified.push_back( std::forward< Func >( callback ) );
                     break;
             }
         }
@@ -110,10 +106,10 @@ namespace Mira::ETS {
         template< typename T, typename Func >
         void
         PatchComponent( EntityID id, Func&& func ) {
-            if ( HasComponent < T >( id ) ) {
-                auto& component = GetComponent < T >( id );
+            if ( HasComponent< T >( id ) ) {
+                auto& component = GetComponent< T >( id );
                 func( component );
-                TriggerEvent < T >( id, ComponentEvent::Modified );
+                TriggerEvent< T >( id, ComponentEvent::Modified );
             }
         }
 
@@ -131,10 +127,10 @@ namespace Mira::ETS {
                 m_EntitySignatures.resize( index + 1 );
             }
 
-            auto& store = GetStore < T >();
+            auto& store = GetStore< T >();
             store.Insert( id, std::move( component ) );
 
-            size_t compId = ComponentID < std::remove_cvref_t < T > >::Value();
+            size_t compId = ComponentID< std::remove_cvref_t< T > >::Value();
             m_EntitySignatures[ index ].Set( compId );
 
             if ( compId >= m_StoresByID.size() ) {
@@ -142,8 +138,8 @@ namespace Mira::ETS {
             }
             m_StoresByID[ compId ] = &store;
 
-            EnsureSignalStorage < T >();
-            TriggerEvent < T >( id, ComponentEvent::Added );
+            EnsureSignalStorage< T >();
+            TriggerEvent< T >( id, ComponentEvent::Added );
         }
 
         /**
@@ -155,10 +151,10 @@ namespace Mira::ETS {
         void
         RemoveComponent( EntityID id ) {
             uint32_t index = Internal::GetIndex( id );
-            if ( index < m_EntitySignatures.size() && HasComponent < T >( id ) ) {
-                TriggerEvent < T >( id, ComponentEvent::Removed );
-                GetStore < T >().Remove( id );
-                m_EntitySignatures[ index ].Reset( ComponentID < std::remove_cvref_t < T > >::Value() );
+            if ( index < m_EntitySignatures.size() && HasComponent< T >( id ) ) {
+                TriggerEvent< T >( id, ComponentEvent::Removed );
+                GetStore< T >().Remove( id );
+                m_EntitySignatures[ index ].Reset( ComponentID< std::remove_cvref_t< T > >::Value() );
             }
         }
 
@@ -171,7 +167,7 @@ namespace Mira::ETS {
         template< typename T >
         T&
         GetComponent( EntityID id ) {
-            return GetStore < T >().Get( id );
+            return GetStore< T >().Get( id );
         }
 
         /**
@@ -185,7 +181,7 @@ namespace Mira::ETS {
         HasComponent( EntityID id ) const {
             uint32_t index = Internal::GetIndex( id );
             if ( index >= m_EntitySignatures.size() ) return false;
-            return m_EntitySignatures[ index ].Test( ComponentID < std::remove_cvref_t < T > >::Value() );
+            return m_EntitySignatures[ index ].Test( ComponentID< std::remove_cvref_t< T > >::Value() );
         }
 
         /**
@@ -214,7 +210,7 @@ namespace Mira::ETS {
              */
             View( World& world ) :
                 m_World( world ) {
-                (m_ComponentMask.Set( ComponentID < std::remove_cvref_t < Components > >::Value() ), ...);
+                (m_ComponentMask.Set( ComponentID< std::remove_cvref_t< Components > >::Value() ), ...);
             }
 
             /**
@@ -228,31 +224,31 @@ namespace Mira::ETS {
                 if constexpr ( sizeof...( Components ) == 0 ) return;
 
                 // Pre-fetch all stores into a tuple of references
-                auto stores = std::tie( m_World.GetStore < std::remove_cvref_t < Components > >() ... );
+                auto stores = std::tie( m_World.GetStore< std::remove_cvref_t< Components > >() ... );
 
                 // Find the smallest sparse set to iterate over
-                size_t minSize = std::numeric_limits < size_t >::max();
+                size_t minSize = std::numeric_limits< size_t >::max();
                 void* smallestStorePtr = nullptr;
 
-                auto findSmallest = [&]<size_t... Is>( std::index_sequence < Is ... > ) {
-                    (( std::get < Is >( stores ).Size() < minSize
-                           ? ( minSize = std::get < Is >( stores ).Size(), smallestStorePtr = &std::get <
+                auto findSmallest = [&]<size_t... Is>( std::index_sequence< Is ... > ) {
+                    (( std::get< Is >( stores ).Size() < minSize
+                           ? ( minSize = std::get< Is >( stores ).Size(), smallestStorePtr = &std::get<
                                    Is >( stores ) )
                            : 0 ), ...);
                 };
-                findSmallest( std::make_index_sequence < sizeof...( Components ) >{} );
+                findSmallest( std::make_index_sequence< sizeof...( Components ) >{} );
 
                 if ( !smallestStorePtr ) return;
 
                 // Helper to call func with components from all stores, using direct access for the driving store
-                auto callEach = [&]<size_t DrivingIdx, size_t... Is>( std::index_sequence < Is ... > ) {
-                    auto& drivingStore = std::get < DrivingIdx >( stores );
+                auto callEach = [&]<size_t DrivingIdx, size_t... Is>( std::index_sequence< Is ... > ) {
+                    auto& drivingStore = std::get< DrivingIdx >( stores );
                     if ( ( void* ) &drivingStore == smallestStorePtr ) {
                         const auto& entities = drivingStore.GetEntities();
-                        using DrivingT = std::remove_cvref_t < std::tuple_element_t < DrivingIdx, std::tuple <
+                        using DrivingT = std::remove_cvref_t< std::tuple_element_t< DrivingIdx, std::tuple<
                             Components ... > > >;
 
-                        if constexpr ( !std::is_empty_v < DrivingT > ) {
+                        if constexpr ( !std::is_empty_v< DrivingT > ) {
                             auto& drivingData = drivingStore.GetData();
                             for ( size_t i = 0; i < entities.size(); ++i ) {
                                 EntityID entity = entities[ i ];
@@ -260,15 +256,15 @@ namespace Mira::ETS {
                                 if ( m_World.m_EntitySignatures[ index ].Contains( m_ComponentMask ) ) {
                                     func( ( [&]<size_t I>() -> decltype(auto) {
                                         if constexpr ( I == DrivingIdx ) return drivingData[ i ];
-                                        else return std::get < I >( stores ).Get( entity );
-                                    }.template operator() < Is >() ) ... );
+                                        else return std::get< I >( stores ).Get( entity );
+                                    }.template operator()< Is >() ) ... );
                                 }
                             }
                         } else {
                             for ( EntityID entity : entities ) {
                                 uint32_t index = Internal::GetIndex( entity );
                                 if ( m_World.m_EntitySignatures[ index ].Contains( m_ComponentMask ) ) {
-                                    func( std::get < Is >( stores ).Get( entity ) ... );
+                                    func( std::get< Is >( stores ).Get( entity ) ... );
                                 }
                             }
                         }
@@ -278,11 +274,11 @@ namespace Mira::ETS {
                 };
 
                 // Try each store as the driving store (the one that matched smallestStorePtr will execute)
-                auto tryIterate = [&]<size_t... Is>( std::index_sequence < Is ... > seq ) {
-                    (callEach.template operator() < Is >( seq ) || ...);
+                auto tryIterate = [&]<size_t... Is>( std::index_sequence< Is ... > seq ) {
+                    (callEach.template operator()< Is >( seq ) || ...);
                 };
 
-                tryIterate( std::make_index_sequence < sizeof...( Components ) >{} );
+                tryIterate( std::make_index_sequence< sizeof...( Components ) >{} );
             }
 
         private:
@@ -296,9 +292,9 @@ namespace Mira::ETS {
          * @return View<Components...> The created view.
          */
         template< typename ... Components >
-        View < Components ... >
+        View< Components ... >
         GetView() {
-            return View < Components ... >( *this );
+            return View< Components ... >( *this );
         }
 
         /**
@@ -325,7 +321,7 @@ namespace Mira::ETS {
          */
         EntityID
         GetEntityAt( uint32_t index ) const noexcept {
-            return ( static_cast < EntityID >( m_EntityGenerations[ index ] ) << 32 ) | index;
+            return ( static_cast< EntityID >( m_EntityGenerations[ index ] ) << 32 ) | index;
         }
 
         /**
@@ -335,21 +331,21 @@ namespace Mira::ETS {
          */
         const ComponentMask&
         GetEntityMask( EntityID id ) const noexcept {
-            return m_EntitySignatures[ static_cast < uint32_t >( id ) ];
+            return m_EntitySignatures[ static_cast< uint32_t >( id ) ];
         }
 
         // Helper for system updates with automatic type deduction from lambda
         template< typename Func >
         void
         SystemUpdate( Func&& func ) {
-            SystemUpdateHelper( std::forward < Func >( func ), &std::remove_reference_t < Func >::operator() );
+            SystemUpdateHelper( std::forward< Func >( func ), &std::remove_reference_t< Func >::operator() );
         }
 
         // Overload for explicit types
         template< typename Component, typename ... OtherComponents, typename Func >
         void
         SystemUpdate( Func&& func ) {
-            GetView < Component, OtherComponents ... >().Each( std::forward < Func >( func ) );
+            GetView< Component, OtherComponents ... >().Each( std::forward< Func >( func ) );
         }
 
     private:
@@ -359,36 +355,36 @@ namespace Mira::ETS {
 
         template< typename T >
         struct SignalStorage : ISignalStorage {
-            std::vector < ComponentCallback < T > > onAdded;
-            std::vector < ComponentCallback < T > > onRemoved;
-            std::vector < ComponentCallback < T > > onModified;
+            std::vector< ComponentCallback< T > > onAdded;
+            std::vector< ComponentCallback< T > > onRemoved;
+            std::vector< ComponentCallback< T > > onModified;
         };
 
         template< typename T >
         void
         EnsureSignalStorage() {
-            size_t id = ComponentID < T >::Value();
+            size_t id = ComponentID< T >::Value();
             if ( id >= m_OnRemovedTriggers.size() ) {
                 m_OnRemovedTriggers.resize( id + 1 );
             }
             if ( !m_OnRemovedTriggers[ id ] ) {
                 m_OnRemovedTriggers[ id ] = [this]( EntityID eid ) {
-                    this->TriggerEvent < T >( eid, ComponentEvent::Removed );
+                    this->TriggerEvent< T >( eid, ComponentEvent::Removed );
                 };
             }
         }
 
         template< typename T >
-        SignalStorage < T >&
+        SignalStorage< T >&
         GetSignals() {
             auto typeIndex = std::type_index( typeid( T ) );
             auto it = m_ComponentSignals.find( typeIndex );
             if ( it == m_ComponentSignals.end() ) {
-                auto newSignals = std::make_shared < SignalStorage < T > >();
+                auto newSignals = std::make_shared< SignalStorage< T > >();
                 m_ComponentSignals[ typeIndex ] = newSignals;
                 return *newSignals;
             }
-            return static_cast < SignalStorage < T >& >( *it->second );
+            return static_cast< SignalStorage< T >& >( *it->second );
         }
 
         template< typename T >
@@ -396,8 +392,8 @@ namespace Mira::ETS {
         TriggerEvent( EntityID id, ComponentEvent event ) {
             auto it = m_ComponentSignals.find( std::type_index( typeid( T ) ) );
             if ( it != m_ComponentSignals.end() ) {
-                auto signals = std::static_pointer_cast < SignalStorage < T > >( it->second );
-                auto& component = GetComponent < T >( id );
+                auto signals = std::static_pointer_cast< SignalStorage< T > >( it->second );
+                auto& component = GetComponent< T >( id );
                 switch ( event ) {
                     case ComponentEvent::Added:
                         for ( auto& cb : signals->onAdded ) cb( id, component );
@@ -415,34 +411,34 @@ namespace Mira::ETS {
         template< typename Func, typename R, typename Class, typename ... Args >
         void
         SystemUpdateHelper( Func&& func, R ( Class::*  )( Args ... ) const ) {
-            GetView < std::remove_cvref_t < Args > ... >().Each( std::forward < Func >( func ) );
+            GetView< std::remove_cvref_t< Args > ... >().Each( std::forward< Func >( func ) );
         }
 
         template< typename Func, typename R, typename Class, typename ... Args >
         void
         SystemUpdateHelper( Func&& func, R ( Class::*  )( Args ... ) ) {
-            GetView < std::remove_cvref_t < Args > ... >().Each( std::forward < Func >( func ) );
+            GetView< std::remove_cvref_t< Args > ... >().Each( std::forward< Func >( func ) );
         }
 
         template< typename T >
-        SparseSet < T >&
+        SparseSet< T >&
         GetStore() {
             auto typeIndex = std::type_index( typeid( T ) );
             auto it = m_ComponentStores.find( typeIndex );
             if ( it == m_ComponentStores.end() ) {
-                auto newStore = std::make_shared < SparseSet < T > >();
+                auto newStore = std::make_shared< SparseSet< T > >();
                 m_ComponentStores[ typeIndex ] = newStore;
                 return *newStore;
             }
-            return static_cast < SparseSet < T >& >( *it->second );
+            return static_cast< SparseSet< T >& >( *it->second );
         }
 
-        std::vector < ISparseSet* > m_StoresByID;
-        std::unordered_map < std::type_index, std::shared_ptr < ISparseSet > > m_ComponentStores;
-        std::unordered_map < std::type_index, std::shared_ptr < ISignalStorage > > m_ComponentSignals;
-        std::vector < std::function < void( EntityID ) > > m_OnRemovedTriggers;
-        std::vector < ComponentMask > m_EntitySignatures;
-        std::vector < uint32_t > m_EntityGenerations;
-        std::vector < EntityID > m_FreeEntities;
+        std::vector< ISparseSet* > m_StoresByID;
+        std::unordered_map< std::type_index, std::shared_ptr< ISparseSet > > m_ComponentStores;
+        std::unordered_map< std::type_index, std::shared_ptr< ISignalStorage > > m_ComponentSignals;
+        std::vector< std::function< void( EntityID ) > > m_OnRemovedTriggers;
+        std::vector< ComponentMask > m_EntitySignatures;
+        std::vector< uint32_t > m_EntityGenerations;
+        std::vector< EntityID > m_FreeEntities;
     };
 } // namespace Mira::ETS
